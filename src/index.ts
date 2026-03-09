@@ -20,6 +20,35 @@ export {
 } from "./core/probe.ts";
 export type { InstallationInfo } from "./core/validate.ts";
 export { parseVersionString, validateInstallation } from "./core/validate.ts";
+// Encoding
+export type { CodecFamily, CodecMapping } from "./encoding/codecs.ts";
+export {
+  CODEC_REGISTRY,
+  getCodecFamily,
+  getCpuEncoder,
+  getDefaultAudioCodec,
+  getEncoderForMode,
+} from "./encoding/codecs.ts";
+export {
+  audioEncoderConfigToArgs,
+  buildEncoderConfig,
+  encoderConfigToArgs,
+} from "./encoding/config.ts";
+export {
+  ARCHIVE_PRESET,
+  getPreset,
+  getPresetNames,
+  SOCIAL_PRESETS,
+  WEB_PRESETS,
+  YOUTUBE_PRESETS,
+} from "./encoding/presets.ts";
+// Hardware
+export type { DetectConfig, HardwareCapabilities } from "./hardware/detect.ts";
+export { clearHardwareCache, detectHardware } from "./hardware/detect.ts";
+export type { FallbackOptions } from "./hardware/fallback.ts";
+export { executeWithFallback } from "./hardware/fallback.ts";
+export type { HwSession, SessionConfig } from "./hardware/session.ts";
+export { acquireSession, withHwSession } from "./hardware/session.ts";
 // Schemas
 export {
   audioStreamInfoSchema,
