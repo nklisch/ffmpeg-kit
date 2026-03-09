@@ -206,6 +206,33 @@ export interface NormalizeConfig {
   twoPass?: boolean;
 }
 
+export interface AudioInputConfig {
+  /** Volume adjustment: number (multiplier) or string (e.g. '-6dB') */
+  volume?: number | string;
+  /** Delay in milliseconds before this track starts */
+  delay?: number;
+  /** Trim start of this audio input (seconds) */
+  trimStart?: number;
+  /** Trim end (seconds) */
+  trimEnd?: number;
+}
+
+export interface ClipConfig {
+  path: string;
+  trimStart?: number;
+  trimEnd?: number;
+  /** Duration override (alternative to trimEnd) */
+  duration?: number;
+}
+
+export interface TransitionConfig {
+  type: TransitionType;
+  /** Transition duration in seconds (default: 1) */
+  duration?: number;
+  /** Custom expression (when type is 'custom') */
+  expr?: string;
+}
+
 // --- Filter Graph ---
 
 export interface FilterNode {

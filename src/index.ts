@@ -49,6 +49,10 @@ export type { FallbackOptions } from "./hardware/fallback.ts";
 export { executeWithFallback } from "./hardware/fallback.ts";
 export type { HwSession, SessionConfig } from "./hardware/session.ts";
 export { acquireSession, withHwSession } from "./hardware/session.ts";
+export type { AudioBuilder } from "./operations/audio.ts";
+export { audio } from "./operations/audio.ts";
+export type { ConcatBuilder } from "./operations/concat.ts";
+export { concat } from "./operations/concat.ts";
 export type { ExtractBuilder } from "./operations/extract.ts";
 // Operations
 export { extract } from "./operations/extract.ts";
@@ -70,10 +74,12 @@ export {
 export type {
   AudioCodec,
   AudioEncoderConfig,
+  AudioInputConfig,
   AudioResult,
   AudioStreamInfo,
   BlendMode,
   ChapterInfo,
+  ClipConfig,
   Color,
   ConcatResult,
   ContainerFormat,
@@ -124,6 +130,7 @@ export type {
   Timestamp,
   TransformResult,
   // Filters & operation configs
+  TransitionConfig,
   TransitionType,
   // Codecs & encoding
   VideoCodec,

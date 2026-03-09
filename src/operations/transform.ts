@@ -15,6 +15,7 @@ import type {
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { OperationResult, TransformResult } from "../types/results.ts";
+import { buildAtempoChain } from "../util/audio-filters.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface TransformState {
@@ -195,27 +196,6 @@ function buildRotateFilters(degrees: number): string[] {
         exitCode: 0,
       });
   }
-}
-
-function buildAtempoChain(factor: number): string {
-  const parts: string[] = [];
-  let remaining = factor;
-
-  if (factor >= 1) {
-    while (remaining > 2.0) {
-      parts.push("atempo=2");
-      remaining /= 2;
-    }
-    parts.push(`atempo=${remaining}`);
-  } else {
-    while (remaining < 0.5) {
-      parts.push("atempo=0.5");
-      remaining /= 0.5;
-    }
-    parts.push(`atempo=${remaining}`);
-  }
-
-  return parts.join(",");
 }
 
 function buildVideoFilters(

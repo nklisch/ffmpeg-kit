@@ -36,5 +36,29 @@ ffmpeg -y -f lavfi -i "testsrc2=size=1920x1080:rate=1:duration=1" \
   -frames:v 1 -q:v 2 \
   image-1080p.jpg
 
+# video-no-audio.mp4 — concat missing-audio test
+# 640x360, 2s, 30fps, H.264, NO audio
+ffmpeg -y -f lavfi -i "testsrc2=size=640x360:rate=30:duration=2" \
+  -c:v libx264 -preset ultrafast -crf 23 -pix_fmt yuv420p \
+  -an \
+  video-no-audio.mp4
+
+# audio-music.wav — mixing/ducking tests
+# 48kHz, stereo, 5s, dual-tone (300Hz + 500Hz for richer signal)
+ffmpeg -y -f lavfi -i "sine=frequency=300:duration=5:sample_rate=48000" \
+  -f lavfi -i "sine=frequency=500:duration=5:sample_rate=48000" \
+  -filter_complex "[0:a][1:a]amerge=inputs=2[out]" \
+  -map "[out]" -c:a pcm_s16le \
+  audio-music.wav
+
+# audio-silence.wav — silence detection tests
+# 48kHz, mono, 5s: 1.5s tone, 2s silence, 1.5s tone
+ffmpeg -y -f lavfi -i "sine=frequency=440:duration=1.5:sample_rate=48000" \
+  -f lavfi -i "anullsrc=r=48000:cl=mono" \
+  -f lavfi -i "sine=frequency=440:duration=1.5:sample_rate=48000" \
+  -filter_complex "[0:a]apad=pad_dur=0[a0];[1:a]atrim=duration=2[a1];[2:a]apad=pad_dur=0[a2];[a0][a1][a2]concat=n=3:v=0:a=1[out]" \
+  -map "[out]" -c:a pcm_s16le -t 5 \
+  audio-silence.wav
+
 echo "Done. Generated fixtures:"
 ls -lh *.mp4 *.wav *.jpg 2>/dev/null || true

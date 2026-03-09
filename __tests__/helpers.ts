@@ -13,7 +13,10 @@ export const FIXTURES_DIR: string = resolve(import.meta.dirname, "fixtures");
 export const FIXTURES = {
   videoH264: join(FIXTURES_DIR, "video-h264.mp4"),
   videoShort: join(FIXTURES_DIR, "video-short.mp4"),
+  videoNoAudio: join(FIXTURES_DIR, "video-no-audio.mp4"),
   audioSpeech: join(FIXTURES_DIR, "audio-speech.wav"),
+  audioMusic: join(FIXTURES_DIR, "audio-music.wav"),
+  audioSilence: join(FIXTURES_DIR, "audio-silence.wav"),
   image1080p: join(FIXTURES_DIR, "image-1080p.jpg"),
 };
 

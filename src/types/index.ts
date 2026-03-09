@@ -19,7 +19,9 @@ export type {
 export { FFmpegError, FFmpegErrorCode } from "./errors.ts";
 // Filter & operation config types
 export type {
+  AudioInputConfig,
   BlendMode,
+  ClipConfig,
   CropConfig,
   DuckConfig,
   EasingFunction,
@@ -33,6 +35,7 @@ export type {
   OverlayPosition,
   Position,
   ScaleAlgorithm,
+  TransitionConfig,
   TransitionType,
 } from "./filters.ts";
 // Options & progress types
