@@ -12,14 +12,14 @@ Source material: termtube `src/lib/ffmpeg/` and youtube-ts-auto `packages/shared
 
 Set up the repo, toolchain, and CI foundation.
 
-- [ ] `package.json` — `@ffmpeg-sdk/core`, ESM, Node >= 22, workspace-compatible
-- [ ] `tsconfig.json` — strict, ES2024, Bundler resolution, `verbatimModuleSyntax`
-- [ ] `tsup.config.ts` — ESM only, dts, sourcemaps
-- [ ] `biome.json` — SDK's own lint/format rules (decide quote style, line width)
-- [ ] `vitest.config.ts` — pool: forks, maxForks: 4, 30s timeout, tier structure
-- [ ] Directory skeleton: `src/`, `__tests__/`, all subdirectories per ARCH.md
-- [ ] `src/index.ts` — empty barrel export placeholder
-- [ ] CI: lint + typecheck + Tier 1 tests (no ffmpeg needed)
+- [x] `package.json` — `@ffmpeg-sdk/core`, ESM, Node >= 22, workspace-compatible
+- [x] `tsconfig.json` — strict, ES2024, Bundler resolution, `verbatimModuleSyntax`
+- [x] `tsup.config.ts` — ESM only, dts, sourcemaps
+- [x] `biome.json` — SDK's own lint/format rules (decide quote style, line width)
+- [x] `vitest.config.ts` — pool: forks, maxForks: 4, 30s timeout, tier structure
+- [x] Directory skeleton: `src/`, `__tests__/`, all subdirectories per ARCH.md
+- [x] `src/index.ts` — empty barrel export placeholder
+- [x] CI: lint + typecheck + Tier 1 tests (no ffmpeg needed)
 
 **Done when:** `pnpm build` produces `dist/`, `pnpm check` passes, `pnpm test` runs (0 tests).
 
@@ -29,14 +29,14 @@ Set up the repo, toolchain, and CI foundation.
 
 All shared type definitions and Zod schemas. No runtime code yet.
 
-- [ ] `src/types/options.ts` — `ExecuteOptions`, `ProgressInfo`, `FFmpegLogLevel`, `Timestamp`
-- [ ] `src/types/codecs.ts` — `VideoCodec`, `AudioCodec`, `PixelFormat`, `EncodingPreset`, `ContainerFormat`
-- [ ] `src/types/results.ts` — `ExecuteResult`, `ExtractResult`, `TransformResult`, `AudioResult`, `ConcatResult`, `ExportResult`, `OverlayResult`, `TextResult`, `SubtitleResult`, `ImageResult`, `StreamResult`, `GifResult`
-- [ ] `src/types/probe.ts` — `ProbeResult`, `FormatInfo`, `VideoStreamInfo`, `AudioStreamInfo`, `SubtitleStreamInfo`, `StreamDisposition`, `ChapterInfo`
-- [ ] `src/types/filters.ts` — `TransitionType`, `FadeCurve`, `BlendMode`, `FitMode`, `ScaleAlgorithm`, `EasingFunction`, `KenBurnsConfig`, `CropConfig`, `DuckConfig`, `NormalizeConfig`, position types
-- [ ] `src/types/errors.ts` — `FFmpegErrorCode` enum, `FFmpegError` class
-- [ ] `src/schemas/probe.ts` — Zod schemas for ffprobe JSON output (port from existing)
-- [ ] Barrel export all types from `src/index.ts`
+- [x] `src/types/options.ts` — `ExecuteOptions`, `ProgressInfo`, `FFmpegLogLevel`, `Timestamp`
+- [x] `src/types/codecs.ts` — `VideoCodec`, `AudioCodec`, `PixelFormat`, `EncodingPreset`, `ContainerFormat`
+- [x] `src/types/results.ts` — `ExecuteResult`, `ExtractResult`, `TransformResult`, `AudioResult`, `ConcatResult`, `ExportResult`, `OverlayResult`, `TextResult`, `SubtitleResult`, `ImageResult`, `StreamResult`, `GifResult`
+- [x] `src/types/probe.ts` — `ProbeResult`, `FormatInfo`, `VideoStreamInfo`, `AudioStreamInfo`, `SubtitleStreamInfo`, `StreamDisposition`, `ChapterInfo`
+- [x] `src/types/filters.ts` — `TransitionType`, `FadeCurve`, `BlendMode`, `FitMode`, `ScaleAlgorithm`, `EasingFunction`, `KenBurnsConfig`, `CropConfig`, `DuckConfig`, `NormalizeConfig`, position types
+- [x] `src/types/errors.ts` — `FFmpegErrorCode` enum, `FFmpegError` class
+- [x] `src/schemas/probe.ts` — Zod schemas for ffprobe JSON output (port from existing)
+- [x] Barrel export all types from `src/index.ts`
 
 **Done when:** `pnpm build` succeeds, all types are importable, Zod schemas compile.
 
@@ -47,30 +47,30 @@ All shared type definitions and Zod schemas. No runtime code yet.
 `execute()`, `probe()`, `validateInstallation()`, and supporting utilities.
 
 ### Utilities
-- [ ] `src/util/timecode.ts` — `parseTimecode()` supporting HH:MM:SS, MM:SS, seconds, percentage
-- [ ] `src/util/tempfile.ts` — temp file creation with auto-cleanup (`tmp()` helper, `TempFile` class)
-- [ ] `src/util/cache.ts` — generic TTL + LRU cache (used by probe, hardware detection)
-- [ ] `src/util/platform.ts` — OS detection, path normalization
-- [ ] `src/util/logger.ts` — optional pino integration (no-op by default)
+- [x] `src/util/timecode.ts` — `parseTimecode()` supporting HH:MM:SS, MM:SS, seconds, percentage
+- [x] `src/util/tempfile.ts` — temp file creation with auto-cleanup (`tmp()` helper, `TempFile` class)
+- [x] `src/util/cache.ts` — generic TTL + LRU cache (used by probe, hardware detection)
+- [x] `src/util/platform.ts` — OS detection, path normalization
+- [x] `src/util/logger.ts` — optional pino integration (no-op by default)
 
 ### Core
-- [ ] `src/core/args.ts` — argument builder utilities, escaping, flag construction
-- [ ] `src/core/execute.ts` — process spawning, `-progress pipe:1` parsing, timeout, cancellation via AbortSignal, `overwrite` flag
-- [ ] `src/core/probe.ts` — ffprobe wrapper, Zod validation, caching by `(path, mtime)`, `probe()`, `getDuration()`, `getVideoStream()`, `getAudioStream()`
-- [ ] `src/core/validate.ts` — binary discovery, version parsing, capability detection
+- [x] `src/core/args.ts` — argument builder utilities, escaping, flag construction
+- [x] `src/core/execute.ts` — process spawning, `-progress pipe:1` parsing, timeout, cancellation via AbortSignal, `overwrite` flag
+- [x] `src/core/probe.ts` — ffprobe wrapper, Zod validation, caching by `(path, mtime)`, `probe()`, `getDuration()`, `getVideoStream()`, `getAudioStream()`
+- [x] `src/core/validate.ts` — binary discovery, version parsing, capability detection
 
 ### Tests
-- [ ] Unit: timecode parsing edge cases
-- [ ] Unit: cache TTL/LRU eviction
-- [ ] Unit: args builder escaping
-- [ ] E2E: `execute()` basic, timeout, cancellation, progress, bad input
-- [ ] E2E: `probe()` video, audio, chapters, caching, `getDuration()`
-- [ ] E2E: `validateInstallation()` returns versions
+- [x] Unit: timecode parsing edge cases
+- [x] Unit: cache TTL/LRU eviction
+- [x] Unit: args builder escaping
+- [x] E2E: `execute()` basic, timeout, cancellation, progress, bad input
+- [x] E2E: `probe()` video, audio, chapters, caching, `getDuration()`
+- [x] E2E: `validateInstallation()` returns versions
 
 ### Fixtures
-- [ ] `__tests__/fixtures/generate.sh` — generates all test fixtures from scratch
-- [ ] `__tests__/helpers.ts` — `tmp()`, `expectFileExists()`, `probeOutput()`, `expectDurationClose()`, `expectDimensions()`, `expectCodec()`, `describeWithFFmpeg`
-- [ ] Generate initial fixtures: `video-h264.mp4`, `video-short.mp4`, `audio-speech.wav`
+- [x] `__tests__/fixtures/generate.sh` — generates all test fixtures from scratch
+- [x] `__tests__/helpers.ts` — `tmp()`, `expectFileExists()`, `probeOutput()`, `expectDurationClose()`, `expectDimensions()`, `expectCodec()`, `describeWithFFmpeg`
+- [x] Generate initial fixtures: `video-h264.mp4`, `video-short.mp4`, `audio-speech.wav`
 
 **Done when:** `ffmpeg.execute()`, `ffmpeg.probe()`, `ffmpeg.validateInstallation()` work. All core E2E tests pass.
 
@@ -81,21 +81,21 @@ All shared type definitions and Zod schemas. No runtime code yet.
 GPU detection, session management, fallback logic, encoder config, and presets.
 
 ### Hardware
-- [ ] `src/hardware/detect.ts` — `detectHardware()`, cached singleton, queries encoders/decoders + nvidia-smi/vainfo
-- [ ] `src/hardware/session.ts` — `acquireSession()`, `withHwSession()`, ref-counted NVENC/QSV tracking (2 consumer / 8 pro)
-- [ ] `src/hardware/fallback.ts` — auto-fallback: hwaccel → CPU on failure with retry + logging
+- [x] `src/hardware/detect.ts` — `detectHardware()`, cached singleton, queries encoders/decoders + nvidia-smi/vainfo
+- [x] `src/hardware/session.ts` — `acquireSession()`, `withHwSession()`, ref-counted NVENC/QSV tracking (2 consumer / 8 pro)
+- [x] `src/hardware/fallback.ts` — auto-fallback: hwaccel → CPU on failure with retry + logging
 
 ### Encoding
-- [ ] `src/encoding/codecs.ts` — codec registry: availability detection, capability mapping
-- [ ] `src/encoding/config.ts` — `buildEncoderArgs()` from quality tier + hw mode, `EncoderConfig` builder
-- [ ] `src/encoding/presets.ts` — `YOUTUBE_PRESETS`, `SOCIAL_PRESETS`, `QUALITY_PRESETS`, `QUALITY_PRESETS_NVENC`, `QUALITY_PRESETS_AV1`
+- [x] `src/encoding/codecs.ts` — codec registry: availability detection, capability mapping
+- [x] `src/encoding/config.ts` — `buildEncoderArgs()` from quality tier + hw mode, `EncoderConfig` builder
+- [x] `src/encoding/presets.ts` — `YOUTUBE_PRESETS`, `SOCIAL_PRESETS`, `QUALITY_PRESETS`, `QUALITY_PRESETS_NVENC`, `QUALITY_PRESETS_AV1`
 
 ### Tests
-- [ ] Unit: preset config validation (all presets produce valid args)
-- [ ] Unit: encoder arg construction for each codec family
-- [ ] E2E: `detectHardware()` returns available methods
-- [ ] E2E: NVENC encode (gated by `FFMPEG_HW_TESTS=1`)
-- [ ] E2E: auto fallback to CPU
+- [x] Unit: preset config validation (all presets produce valid args)
+- [x] Unit: encoder arg construction for each codec family
+- [x] E2E: `detectHardware()` returns available methods
+- [x] E2E: NVENC encode (gated by `FFMPEG_HW_TESTS=1`)
+- [x] E2E: auto fallback to CPU
 
 **Done when:** `ffmpeg.detectHardware()`, `buildEncoderArgs()`, all presets work. Hardware-gated tests pass on GPU machines, skip cleanly elsewhere.
 
@@ -106,17 +106,17 @@ GPU detection, session management, fallback logic, encoder config, and presets.
 Port and extend the two simplest operation builders.
 
 ### Extract
-- [ ] `src/operations/extract.ts` — `ExtractBuilder` with: input, timestamp (seconds/timecode/percentage), size, format (png/jpg/webp/bmp/tiff), quality, frames, thumbnail (scene detect), output, toArgs, execute, tryExecute
+- [x] `src/operations/extract.ts` — `ExtractBuilder` with: input, timestamp (seconds/timecode/percentage), size, format (png/jpg/webp/bmp/tiff), quality, frames, thumbnail (scene detect), output, toArgs, execute, tryExecute
 
 ### Transform
-- [ ] `src/operations/transform.ts` — `TransformBuilder` with: input, scale, fit, scaleAlgorithm, crop, kenBurns, speed, reverse, trimStart, trimEnd, duration, loop, fps, interpolate, pad, rotate, flipH, flipV, stabilize, outputSize, hwAccel, output, toArgs, execute, tryExecute
+- [x] `src/operations/transform.ts` — `TransformBuilder` with: input, scale, fit, scaleAlgorithm, crop, kenBurns, speed, reverse, trimStart, trimEnd, duration, loop, fps, interpolate, pad, rotate, flipH, flipV, stabilize, outputSize, hwAccel, output, toArgs, execute, tryExecute
 
 ### Tests
-- [ ] Builder: extract arg ordering (`-ss` before `-i`), format/quality flags
-- [ ] Builder: transform scale filters, crop expressions, speed setpts, Ken Burns zoompan
-- [ ] E2E: extract at timestamp, percentage, with resize, JPEG, WebP, thumbnail
-- [ ] E2E: scale (width-only, both dims, contain, cover), crop (aspect ratio, explicit), Ken Burns, speed (2x, 0.5x, 4x), trim, loop, rotate, flip, pad, fps, reverse
-- [ ] Fixtures: `image-1080p.jpg` (for Ken Burns)
+- [x] Builder: extract arg ordering (`-ss` before `-i`), format/quality flags
+- [x] Builder: transform scale filters, crop expressions, speed setpts, Ken Burns zoompan
+- [x] E2E: extract at timestamp, percentage, with resize, JPEG, WebP, thumbnail
+- [x] E2E: scale (width-only, both dims, contain, cover), crop (aspect ratio, explicit), Ken Burns, speed (2x, 0.5x, 4x), trim, loop, rotate, flip, pad, fps, reverse
+- [x] Fixtures: `image-1080p.jpg` (for Ken Burns)
 
 **Done when:** All extract and transform rows in the TESTING.md coverage matrix pass.
 
@@ -127,19 +127,19 @@ Port and extend the two simplest operation builders.
 The two most complex existing operations.
 
 ### Audio
-- [ ] `src/operations/audio.ts` — `AudioBuilder` with: input, addInput, extractAudio, duck, normalize, fadeIn, fadeOut, compress, limit, eq, highpass, lowpass, bass, treble, gate, denoise, deess, echo, tempo, pitch, resample, codec, bitrate, sampleRate, channels, channelLayout, detectSilence, extractAmplitude, output, toArgs, execute, tryExecute
+- [x] `src/operations/audio.ts` — `AudioBuilder` with: input, addInput, extractAudio, duck, normalize, fadeIn, fadeOut, compress, limit, eq, highpass, lowpass, bass, treble, gate, denoise, deess, echo, tempo, pitch, resample, codec, bitrate, sampleRate, channels, channelLayout, detectSilence, extractAmplitude, output, toArgs, execute, tryExecute
 
 ### Concat
-- [ ] `src/operations/concat.ts` — `ConcatBuilder` with: addClip, transition, defaultTransition, audioCrossfade, normalizeResolution, normalizeFps, fillSilence, hwAccel, output, toArgs, execute, tryExecute
-- [ ] Two paths: concat demuxer (no transitions) vs filter_complex (with transitions)
-- [ ] Silent audio generation for video-only clips
+- [x] `src/operations/concat.ts` — `ConcatBuilder` with: addClip, transition, defaultTransition, audioCrossfade, normalizeResolution, normalizeFps, fillSilence, hwAccel, output, toArgs, execute, tryExecute
+- [x] Two paths: concat demuxer (no transitions) vs filter_complex (with transitions)
+- [x] Silent audio generation for video-only clips
 
 ### Tests
-- [ ] Builder: audio filter chain construction, volume resolution, ducking filter graph
-- [ ] Builder: concat demuxer file list, xfade filter graph construction
-- [ ] E2E: extract audio, mix, volume, ducking, normalize (measure LUFS), fades, tempo, highpass, lowpass, resample, channel conversion, silence detection
-- [ ] E2E: simple concat, crossfade, fadeblack, mixed sources, 5+ clips, per-clip trim, missing audio
-- [ ] Fixtures: `video-no-audio.mp4`, `audio-music.wav`, `audio-silence.wav`
+- [x] Builder: audio filter chain construction, volume resolution, ducking filter graph
+- [x] Builder: concat demuxer file list, xfade filter graph construction
+- [x] E2E: extract audio, mix, volume, ducking, normalize (measure LUFS), fades, tempo, highpass, lowpass, resample, channel conversion, silence detection
+- [x] E2E: simple concat, crossfade, fadeblack, mixed sources, 5+ clips, per-clip trim, missing audio
+- [x] Fixtures: `video-no-audio.mp4`, `audio-music.wav`, `audio-silence.wav`
 
 **Done when:** All audio and concat rows in the TESTING.md coverage matrix pass.
 

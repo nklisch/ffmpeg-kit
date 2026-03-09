@@ -60,5 +60,9 @@ ffmpeg -y -f lavfi -i "sine=frequency=440:duration=1.5:sample_rate=48000" \
   -map "[out]" -c:a pcm_s16le -t 5 \
   audio-silence.wav
 
+# image-small.png — 200x200 PNG with alpha channel (for overlay/watermark tests)
+ffmpeg -y -f lavfi -i "color=c=red:size=200x200:duration=1,format=rgba" \
+  -frames:v 1 -update 1 image-small.png
+
 echo "Done. Generated fixtures:"
-ls -lh *.mp4 *.wav *.jpg 2>/dev/null || true
+ls -lh *.mp4 *.wav *.jpg *.png 2>/dev/null || true

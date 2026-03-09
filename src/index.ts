@@ -53,9 +53,26 @@ export type { AudioBuilder } from "./operations/audio.ts";
 export { audio } from "./operations/audio.ts";
 export type { ConcatBuilder } from "./operations/concat.ts";
 export { concat } from "./operations/concat.ts";
+export type { ExportBuilder } from "./operations/export.ts";
+export { exportVideo } from "./operations/export.ts";
 export type { ExtractBuilder } from "./operations/extract.ts";
 // Operations
 export { extract } from "./operations/extract.ts";
+export type {
+  OverlayBuilder,
+  OverlayConfig,
+  PipConfig,
+  WatermarkConfig,
+} from "./operations/overlay.ts";
+export { overlay } from "./operations/overlay.ts";
+export type {
+  CounterConfig,
+  ScrollConfig,
+  TextBuilder,
+  TextConfig,
+  TextStyle,
+} from "./operations/text.ts";
+export { text } from "./operations/text.ts";
 export type { TransformBuilder } from "./operations/transform.ts";
 export { transform } from "./operations/transform.ts";
 // Schemas
@@ -138,6 +155,12 @@ export type {
 } from "./types/index.ts";
 // Value exports (runtime)
 export { FFmpegError, FFmpegErrorCode } from "./types/index.ts";
+export {
+  DEFAULT_AUDIO_CODEC_ARGS,
+  DEFAULT_VIDEO_CODEC_ARGS,
+  missingFieldError,
+  wrapTryExecute,
+} from "./util/builder-helpers.ts";
 export type { CacheOptions } from "./util/cache.ts";
 export { Cache } from "./util/cache.ts";
 export type { Logger, LogLevel } from "./util/logger.ts";
@@ -148,9 +171,3 @@ export type { TempFile, TempFileOptions } from "./util/tempfile.ts";
 export { createTempFile, createTempFiles } from "./util/tempfile.ts";
 // Utilities
 export { parseTimecode } from "./util/timecode.ts";
-export {
-  DEFAULT_AUDIO_CODEC_ARGS,
-  DEFAULT_VIDEO_CODEC_ARGS,
-  missingFieldError,
-  wrapTryExecute,
-} from "./util/builder-helpers.ts";
