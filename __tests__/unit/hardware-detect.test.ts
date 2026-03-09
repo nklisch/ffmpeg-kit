@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   categorizeEncoder,
+  isHardwareEncoder,
   mapHwaccelMode,
-  parseDecoders,
-  parseEncoders,
+  parseCodecList,
   parseHwaccels,
 } from "../../src/hardware/detect.ts";
 
@@ -56,9 +56,9 @@ describe("parseHwaccels", () => {
   });
 });
 
-describe("parseEncoders", () => {
-  it("extracts encoder names from output", () => {
-    const result = parseEncoders(SAMPLE_ENCODERS);
+describe("parseCodecList", () => {
+  it("extracts encoder names from encoder output", () => {
+    const result = parseCodecList(SAMPLE_ENCODERS);
     expect(result).toContain("libx264");
     expect(result).toContain("h264_nvenc");
     expect(result).toContain("h264_vaapi");
@@ -68,15 +68,13 @@ describe("parseEncoders", () => {
   });
 
   it("does not include header lines", () => {
-    const result = parseEncoders(SAMPLE_ENCODERS);
+    const result = parseCodecList(SAMPLE_ENCODERS);
     expect(result).not.toContain("Encoders:");
     expect(result).not.toContain("V.....");
   });
-});
 
-describe("parseDecoders", () => {
-  it("extracts decoder names from output", () => {
-    const result = parseDecoders(SAMPLE_DECODERS);
+  it("extracts decoder names from decoder output", () => {
+    const result = parseCodecList(SAMPLE_DECODERS);
     expect(result).toContain("h264");
     expect(result).toContain("h264_cuvid");
     expect(result).toContain("h264_qsv");
@@ -105,6 +103,22 @@ describe("mapHwaccelMode", () => {
     expect(mapHwaccelMode("opencl")).toBeNull();
     expect(mapHwaccelMode("d3d11va")).toBeNull();
     expect(mapHwaccelMode("")).toBeNull();
+  });
+});
+
+describe("isHardwareEncoder", () => {
+  it("returns true for hw encoder names", () => {
+    expect(isHardwareEncoder("h264_nvenc")).toBe(true);
+    expect(isHardwareEncoder("hevc_vaapi")).toBe(true);
+    expect(isHardwareEncoder("av1_qsv")).toBe(true);
+    expect(isHardwareEncoder("h264_amf")).toBe(true);
+    expect(isHardwareEncoder("hevc_vulkan")).toBe(true);
+  });
+
+  it("returns false for CPU encoders and other names", () => {
+    expect(isHardwareEncoder("libx264")).toBe(false);
+    expect(isHardwareEncoder("aac")).toBe(false);
+    expect(isHardwareEncoder("libsvtav1")).toBe(false);
   });
 });
 

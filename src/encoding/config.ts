@@ -4,6 +4,7 @@ import type {
   HwAccelMode,
   QualityTier,
 } from "../types/codecs.ts";
+import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { CodecFamily } from "./codecs.ts";
 import { getEncoderForMode } from "./codecs.ts";
 
@@ -94,9 +95,13 @@ export function buildEncoderConfig(
   family: CodecFamily = "h264",
 ): EncoderConfig {
   if (mode === "auto") {
-    throw new Error(
-      `Cannot use "auto" mode in buildEncoderConfig — resolve to concrete mode first`,
-    );
+    throw new FFmpegError({
+      code: FFmpegErrorCode.INVALID_INPUT,
+      message: `Cannot use "auto" mode in buildEncoderConfig — resolve to concrete mode first`,
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
   }
 
   const codec = getEncoderForMode(family, mode);

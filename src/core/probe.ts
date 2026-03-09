@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { statSync } from "node:fs";
 import { resolve } from "node:path";
+import type { ZodSchema } from "zod";
 import { probeResultSchema, rawProbeOutputSchema } from "../schemas/probe.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { AudioStreamInfo, ProbeResult, VideoStreamInfo } from "../types/probe.ts";
@@ -17,6 +18,20 @@ export interface ProbeConfig {
         ttlMs?: number;
       }
     | false;
+}
+
+function zodParseOrThrow<T>(schema: ZodSchema<T>, data: unknown, label: string, command: string[]): T {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    throw new FFmpegError({
+      code: FFmpegErrorCode.INVALID_INPUT,
+      message: `${label}: ${result.error.message}`,
+      stderr: "",
+      command,
+      exitCode: 0,
+    });
+  }
+  return result.data;
 }
 
 // Module-level singleton cache
@@ -149,29 +164,9 @@ export async function probe(
   }
 
   // Validate raw structure, then parse into ProbeResult
-  const rawResult = rawProbeOutputSchema.safeParse(rawJson);
-  if (!rawResult.success) {
-    throw new FFmpegError({
-      code: FFmpegErrorCode.INVALID_INPUT,
-      message: `ffprobe output validation failed: ${rawResult.error.message}`,
-      stderr: "",
-      command: [ffprobePath, absolutePath],
-      exitCode: 0,
-    });
-  }
-
-  const result = probeResultSchema.safeParse(rawJson);
-  if (!result.success) {
-    throw new FFmpegError({
-      code: FFmpegErrorCode.INVALID_INPUT,
-      message: `ffprobe result parsing failed: ${result.error.message}`,
-      stderr: "",
-      command: [ffprobePath, absolutePath],
-      exitCode: 0,
-    });
-  }
-
-  const probeResult = result.data;
+  const cmd = [ffprobePath, absolutePath];
+  zodParseOrThrow(rawProbeOutputSchema, rawJson, "ffprobe output validation failed", cmd);
+  const probeResult = zodParseOrThrow(probeResultSchema, rawJson, "ffprobe result parsing failed", cmd);
 
   // Store in cache
   if (!cacheDisabled && cacheKey !== null) {

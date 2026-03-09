@@ -18,7 +18,13 @@ export interface InstallationInfo {
 export function parseVersionString(output: string): string {
   const match = /version\s+(\S+)/.exec(output);
   if (match === null || match[1] === undefined || match[1].length === 0) {
-    throw new Error(`Could not parse version from: ${output}`);
+    throw new FFmpegError({
+      code: FFmpegErrorCode.INVALID_INPUT,
+      message: `Could not parse version from: ${output}`,
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
   }
   return match[1];
 }

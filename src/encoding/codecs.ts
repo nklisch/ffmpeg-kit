@@ -1,3 +1,4 @@
+import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { AudioCodec, HwAccelMode, VideoCodec } from "../types/codecs.ts";
 
 /** Codec family identifier */
@@ -50,13 +51,23 @@ export const CODEC_REGISTRY: readonly CodecMapping[] = [
  */
 export function getEncoderForMode(family: CodecFamily, mode: HwAccelMode): VideoCodec {
   if (mode === "auto") {
-    throw new Error(
-      `Cannot resolve "auto" mode in getEncoderForMode — call acquireSession() first`,
-    );
+    throw new FFmpegError({
+      code: FFmpegErrorCode.INVALID_INPUT,
+      message: `Cannot resolve "auto" mode in getEncoderForMode — call acquireSession() first`,
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
   }
   const mapping = CODEC_REGISTRY.find((m) => m.family === family);
   if (mapping === undefined) {
-    throw new Error(`Unknown codec family: ${family}`);
+    throw new FFmpegError({
+      code: FFmpegErrorCode.INVALID_INPUT,
+      message: `Unknown codec family: ${family}`,
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
   }
   if (mode === "cpu") return mapping.cpu;
   const hwEncoder = mapping[mode];
@@ -69,9 +80,36 @@ export function getEncoderForMode(family: CodecFamily, mode: HwAccelMode): Video
 export function getCpuEncoder(family: CodecFamily): VideoCodec {
   const mapping = CODEC_REGISTRY.find((m) => m.family === family);
   if (mapping === undefined) {
-    throw new Error(`Unknown codec family: ${family}`);
+    throw new FFmpegError({
+      code: FFmpegErrorCode.INVALID_INPUT,
+      message: `Unknown codec family: ${family}`,
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
   }
   return mapping.cpu;
+}
+
+/** Known aliases per codec family for substring classification */
+const FAMILY_ALIASES: Partial<Record<CodecFamily, string[]>> = {
+  h264: ["avc"],
+  hevc: ["h265"],
+};
+
+/**
+ * Classify a codec name (encoder or decoder) into a CodecFamily using
+ * CODEC_REGISTRY families and known aliases for substring matching.
+ * Returns null if no family matches.
+ * @internal
+ */
+export function classifyCodecFamily(name: string): CodecFamily | null {
+  for (const mapping of CODEC_REGISTRY) {
+    if (name.includes(mapping.family)) return mapping.family;
+    const aliases = FAMILY_ALIASES[mapping.family];
+    if (aliases?.some((alias) => name.includes(alias))) return mapping.family;
+  }
+  return null;
 }
 
 /**

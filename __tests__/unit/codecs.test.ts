@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CODEC_REGISTRY,
+  classifyCodecFamily,
   getCodecFamily,
   getCpuEncoder,
   getDefaultAudioCodec,
@@ -147,6 +148,32 @@ describe("getDefaultAudioCodec", () => {
 
   it("returns aac for flv", () => {
     expect(getDefaultAudioCodec("flv")).toBe("aac");
+  });
+});
+
+describe("classifyCodecFamily", () => {
+  it("classifies hw encoder names by family", () => {
+    expect(classifyCodecFamily("h264_nvenc")).toBe("h264");
+    expect(classifyCodecFamily("hevc_vaapi")).toBe("hevc");
+    expect(classifyCodecFamily("av1_qsv")).toBe("av1");
+    expect(classifyCodecFamily("vp9_vaapi")).toBe("vp9");
+  });
+
+  it("classifies hw decoder names by family", () => {
+    expect(classifyCodecFamily("h264_cuvid")).toBe("h264");
+    expect(classifyCodecFamily("hevc_cuvid")).toBe("hevc");
+    expect(classifyCodecFamily("h264_qsv")).toBe("h264");
+  });
+
+  it("handles aliases", () => {
+    expect(classifyCodecFamily("avc1")).toBe("h264");
+    expect(classifyCodecFamily("h265_cuvid")).toBe("hevc");
+  });
+
+  it("returns null for unrecognized names", () => {
+    expect(classifyCodecFamily("aac")).toBeNull();
+    expect(classifyCodecFamily("dnxhd")).toBeNull();
+    expect(classifyCodecFamily("copy")).toBeNull();
   });
 });
 

@@ -36,6 +36,8 @@ export interface ExecuteOptions {
   logLevel?: FFmpegLogLevel;
   /** Overwrite output files without asking (-y). Default: true */
   overwrite?: boolean;
+  /** Total duration of the input in seconds, used to calculate progress percentage */
+  totalDuration?: number;
 }
 
 export interface ExecuteResult {

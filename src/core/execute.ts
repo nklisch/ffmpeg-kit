@@ -170,7 +170,7 @@ export function execute(
       if (onProgress !== undefined) {
         const lines = text.split("\n");
         for (const line of lines) {
-          const parsed = parseProgressLine(line, options?.signal ? undefined : undefined);
+          const parsed = parseProgressLine(line, options?.totalDuration);
           if (parsed !== null) {
             Object.assign(progressAccum, parsed);
           }

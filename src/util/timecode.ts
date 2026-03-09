@@ -1,3 +1,4 @@
+import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { Timestamp } from "../types/base.ts";
 
 /**
@@ -12,29 +13,33 @@ import type { Timestamp } from "../types/base.ts";
  *
  * Throws on invalid format or negative result.
  */
+function timecodeError(message: string): FFmpegError {
+  return new FFmpegError({ code: FFmpegErrorCode.INVALID_INPUT, message, stderr: "", command: [], exitCode: 0 });
+}
+
 export function parseTimecode(timecode: Timestamp, durationSeconds?: number): number {
   if (typeof timecode === "number") {
-    if (timecode < 0) throw new Error(`Invalid timecode: ${timecode}`);
+    if (timecode < 0) throw timecodeError(`Invalid timecode: ${timecode}`);
     return timecode;
   }
 
   const str = timecode.trim();
 
   if (str.length === 0) {
-    throw new Error("Invalid timecode: empty string");
+    throw timecodeError("Invalid timecode: empty string");
   }
 
   // Percentage format
   if (str.endsWith("%")) {
     if (durationSeconds === undefined) {
-      throw new Error("durationSeconds is required for percentage timecodes");
+      throw timecodeError("durationSeconds is required for percentage timecodes");
     }
     const pct = Number(str.slice(0, -1));
     if (Number.isNaN(pct)) {
-      throw new Error(`Invalid timecode percentage: ${str}`);
+      throw timecodeError(`Invalid timecode percentage: ${str}`);
     }
     const result = (pct / 100) * durationSeconds;
-    if (result < 0) throw new Error(`Invalid timecode: negative result`);
+    if (result < 0) throw timecodeError(`Invalid timecode: negative result`);
     return result;
   }
 
@@ -45,16 +50,16 @@ export function parseTimecode(timecode: Timestamp, durationSeconds?: number): nu
     const minutes = parseInt(colonMatch[2] ?? "0", 10);
     const seconds = parseFloat(colonMatch[3] ?? "0");
     const result = hours * 3600 + minutes * 60 + seconds;
-    if (result < 0) throw new Error(`Invalid timecode: negative result`);
+    if (result < 0) throw timecodeError(`Invalid timecode: negative result`);
     return result;
   }
 
   // Plain numeric string (e.g., "30", "30.5")
   const num = Number(str);
   if (!Number.isNaN(num)) {
-    if (num < 0) throw new Error(`Invalid timecode: ${str}`);
+    if (num < 0) throw timecodeError(`Invalid timecode: ${str}`);
     return num;
   }
 
-  throw new Error(`Invalid timecode format: ${str}`);
+  throw timecodeError(`Invalid timecode format: ${str}`);
 }

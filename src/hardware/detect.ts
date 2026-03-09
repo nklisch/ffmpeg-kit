@@ -3,6 +3,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import type { HwAccelMode, VideoCodec } from "../types/codecs.ts";
+import { classifyCodecFamily } from "../encoding/codecs.ts";
 import { findExecutable } from "../util/platform.ts";
 
 const execFileAsync = promisify(execFile);
@@ -47,18 +48,18 @@ const EMPTY_CAPABILITIES: HardwareCapabilities = {
   decoders: { h264: [], hevc: [], av1: [], vp9: [] },
 };
 
+// Promise memoization is used here instead of the Cache class intentionally:
+// a single module-level promise ensures concurrent calls to detectHardware()
+// all await the same in-flight detection rather than triggering duplicate runs.
+// probe.ts uses Cache<K,V> for per-file keyed caching — a different pattern for
+// a different need.
 let detectPromise: Promise<HardwareCapabilities> | null = null;
 
 /**
- * Detect hardware acceleration capabilities.
- *
- * Cached for process lifetime after first call.
- * Uses `ffmpeg -encoders`, `ffmpeg -decoders`, `ffmpeg -hwaccels`,
- * and optional `nvidia-smi` / `vainfo` queries.
- *
+ * Parse `ffmpeg -encoders` or `ffmpeg -decoders` output into a list of codec names.
  * @internal exported for testability
  */
-export function parseEncoders(stdout: string): string[] {
+export function parseCodecList(stdout: string): string[] {
   const lines = stdout.split("\n");
   const results: string[] = [];
   for (const line of lines) {
@@ -70,14 +71,6 @@ export function parseEncoders(stdout: string): string[] {
     if (name !== undefined && name.length > 0) results.push(name);
   }
   return results;
-}
-
-/**
- * Parse `ffmpeg -decoders` output into list of decoder names.
- * @internal
- */
-export function parseDecoders(stdout: string): string[] {
-  return parseEncoders(stdout);
 }
 
 /**
@@ -114,29 +107,29 @@ export function mapHwaccelMode(name: string): HwAccelMode | null {
   }
 }
 
+/** Hardware encoder name suffixes used to identify hw encoders */
+const HW_ENCODER_SUFFIXES = ["_nvenc", "_vaapi", "_qsv", "_amf", "_vulkan"] as const;
+
+/**
+ * Returns true if the encoder name is a hardware encoder.
+ * @internal
+ */
+export function isHardwareEncoder(name: string): boolean {
+  return HW_ENCODER_SUFFIXES.some((suffix) => name.includes(suffix));
+}
+
 /**
  * Categorize encoder name into codec family and VideoCodec.
- * Only handles hardware encoders containing _nvenc, _vaapi, _qsv, _amf, _vulkan.
+ * Only handles hardware encoders (those matching isHardwareEncoder).
  * @internal
  */
 export function categorizeEncoder(
   name: string,
 ): { family: "h264" | "hevc" | "av1" | "vp9"; codec: VideoCodec } | null {
-  const isHw =
-    name.includes("_nvenc") ||
-    name.includes("_vaapi") ||
-    name.includes("_qsv") ||
-    name.includes("_amf") ||
-    name.includes("_vulkan");
-  if (!isHw) return null;
+  if (!isHardwareEncoder(name)) return null;
 
-  let family: "h264" | "hevc" | "av1" | "vp9" | null = null;
-  if (name.includes("h264")) family = "h264";
-  else if (name.includes("hevc") || name.includes("h265")) family = "hevc";
-  else if (name.includes("av1")) family = "av1";
-  else if (name.includes("vp9")) family = "vp9";
-
-  if (family === null) return null;
+  const family = classifyCodecFamily(name);
+  if (family === null || family === "vp8" || family === "prores") return null;
 
   return { family, codec: name as VideoCodec };
 }
@@ -234,15 +227,8 @@ async function runDetection(config?: DetectConfig): Promise<HardwareCapabilities
     }
 
     // Parse hardware encoders
-    const allEncoders = parseEncoders(encodersResult.stdout + encodersResult.stderr);
-    const hwEncoders = allEncoders.filter(
-      (name) =>
-        name.includes("_nvenc") ||
-        name.includes("_vaapi") ||
-        name.includes("_qsv") ||
-        name.includes("_amf") ||
-        name.includes("_vulkan"),
-    );
+    const allEncoders = parseCodecList(encodersResult.stdout + encodersResult.stderr);
+    const hwEncoders = allEncoders.filter(isHardwareEncoder);
 
     const encoders: HardwareCapabilities["encoders"] = {
       h264: [],
@@ -258,7 +244,7 @@ async function runDetection(config?: DetectConfig): Promise<HardwareCapabilities
     }
 
     // Parse hardware decoders
-    const allDecoders = parseDecoders(decodersResult.stdout + decodersResult.stderr);
+    const allDecoders = parseCodecList(decodersResult.stdout + decodersResult.stderr);
     const hwDecoders = allDecoders.filter(
       (name) => name.includes("_cuvid") || name.includes("_vaapi") || name.includes("_qsv"),
     );
@@ -270,10 +256,11 @@ async function runDetection(config?: DetectConfig): Promise<HardwareCapabilities
       vp9: [],
     };
     for (const dec of hwDecoders) {
-      if (dec.includes("h264") || dec.includes("h264")) decoders.h264.push(dec);
-      else if (dec.includes("hevc") || dec.includes("h265")) decoders.hevc.push(dec);
-      else if (dec.includes("av1")) decoders.av1.push(dec);
-      else if (dec.includes("vp9")) decoders.vp9.push(dec);
+      const family = classifyCodecFamily(dec);
+      if (family === "h264") decoders.h264.push(dec);
+      else if (family === "hevc") decoders.hevc.push(dec);
+      else if (family === "av1") decoders.av1.push(dec);
+      else if (family === "vp9") decoders.vp9.push(dec);
     }
 
     // Determine GPU info
