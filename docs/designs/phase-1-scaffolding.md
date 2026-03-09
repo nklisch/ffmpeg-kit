@@ -16,7 +16,7 @@ Set up the complete project foundation: package.json, TypeScript config, build t
 
 ```json
 {
-  "name": "@ffmpeg-sdk/core",
+  "name": "ffmpeg-kit",
   "version": "0.0.0",
   "description": "TypeScript SDK wrapping the FFmpeg CLI",
   "type": "module",
@@ -70,6 +70,7 @@ Set up the complete project foundation: package.json, TypeScript config, build t
 - `pino` is an optional peer dep (logger is no-op by default, per ARCH.md)
 - `@types/node` pinned to `^22.0.0` to match engines requirement
 - No `workspace:*` references yet — those come in Phase 12
+- Package name is `ffmpeg-kit` (unscoped, available on npm)
 - The `check` script runs both biome and typecheck for the CI "passes" criterion
 
 **Acceptance Criteria**:
