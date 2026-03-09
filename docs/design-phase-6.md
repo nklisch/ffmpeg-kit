@@ -8,7 +8,7 @@ Both follow the established builder pattern from Phase 5 (extract/transform): cl
 
 ### Key Decisions
 
-- **AudioBuilder normalization**: Single-pass `loudnorm` filter only. Two-pass normalization deferred to the convenience layer (Phase 10 pipeline). The `twoPass` field remains in `NormalizeConfig` for future use — `execute()` throws if `twoPass: true` is set, with a message directing users to the future pipeline API.
+- **AudioBuilder normalization**: Both single-pass and two-pass `loudnorm` are implemented directly in `AudioBuilder.execute()`. Single-pass (default) uses the dynamic loudnorm compressor — fast but alters audio character (±2 LUFS accuracy). Two-pass (`twoPass: true`) runs ffmpeg twice: first pass measures loudness from stderr JSON, second pass applies a precise linear gain (±0.1 LUFS, EBU R128 compliant, transparent). `toArgs()` throws for two-pass since it requires two invocations.
 - **ConcatBuilder dual path**: Uses concat demuxer (no re-encode) when there are no transitions and no normalization. Falls back to `filter_complex` with xfade/acrossfade when transitions are needed.
 - **New fixtures**: `audio-music.wav`, `audio-silence.wav`, `video-no-audio.mp4` for ducking, silence detection, and concat missing-audio tests.
 
@@ -224,7 +224,11 @@ highpass → lowpass → gate → denoise → deess → eq → bass → treble
 - **treble**: `treble=g={gain}:f={frequency}` (default freq: 3000)
 - **compress**: `acompressor=threshold={threshold}:ratio={ratio}:attack={attack}:release={release}:makeup={makeupGain}:knee={knee}` (defaults: threshold=-20dB, ratio=4, attack=20ms, release=250ms, makeupGain=0, knee=2.8)
 - **limit**: `alimiter=limit={limit}:attack={attack}:release={release}` (defaults: limit=1, attack=5, release=50)
-- **normalize**: `loudnorm=I={targetLufs}:TP={truePeak}:LRA={loudnessRange}` (defaults: truePeak=-1.5, loudnessRange=11). If `twoPass: true`, throw `FFmpegError` with message "Two-pass normalization is not yet supported in AudioBuilder. Use the pipeline API (coming in Phase 10)."
+- **normalize (single-pass)**: `loudnorm=I={targetLufs}:TP={truePeak}:LRA={loudnessRange}` (defaults: truePeak=-1.5, loudnessRange=11). Dynamic mode — modifies audio character.
+- **normalize (two-pass)**: When `twoPass: true`, `execute()` runs two ffmpeg invocations:
+  1. **Measurement pass**: `ffmpeg -i input -af "loudnorm=I={targetLufs}:TP={truePeak}:LRA={loudnessRange}:print_format=json" -f null -` — parse the JSON block from stderr (lines between `{` and `}` after `[Parsed_loudnorm`). Extract: `input_i`, `input_tp`, `input_lra`, `input_thresh`, `target_offset`.
+  2. **Correction pass**: `ffmpeg -i input -af "loudnorm=I={targetLufs}:TP={truePeak}:LRA={loudnessRange}:measured_I={input_i}:measured_TP={input_tp}:measured_LRA={input_lra}:measured_thresh={input_thresh}:offset={target_offset}:linear=true" output` — linear gain, transparent, EBU R128 compliant.
+  - `toArgs()` throws `FFmpegError` with code `ENCODING_FAILED` and message `"Two-pass normalization requires two ffmpeg invocations — use execute() instead of toArgs()"` when `twoPass: true`.
 - **duck**: Requires multi-input. Uses sidechain compressor: input 0 = main audio, input `trigger` = sidechain trigger. Filter: `[main][trigger]sidechaincompress=threshold={threshold}:ratio=20:attack={attackMs}:release={releaseMs}:level_sc=1` (defaults: threshold=-30, attackMs=20, releaseMs=250). The `amount` field controls the sidechain compress output mix — map it to a volume reduction after the sidechain. In practice, use `sidechaincompress` with `ratio` derived from `amount`.
 - **tempo**: Uses `atempo` with chaining for values outside 0.5-2.0 range (reuse `buildAtempoChain` logic from transform.ts — extract to a shared utility)
 - **pitch**: `rubberband=pitch={2^(semitones/12)}` — requires librubberband. Calculate the pitch scale factor.
@@ -300,7 +304,8 @@ After execution, probe the output file to populate `AudioResult`:
 - [ ] `detectSilence()` parses silence ranges from stderr
 - [ ] `toArgs()` throws for missing `input()` and `output()`
 - [ ] `tryExecute()` catches `FFmpegError` and returns failure result
-- [ ] `normalize({ twoPass: true })` throws with informative message
+- [ ] `normalize({ twoPass: true })` works in `execute()` — probes loudness in pass 1, applies linear gain in pass 2
+- [ ] `normalize({ twoPass: true })` in `toArgs()` throws with informative message
 
 ---
 
@@ -642,7 +647,9 @@ describe("audio()", () => {
   it("produces loudnorm filter", () => {
     // -af "loudnorm=I=-14:TP=-1.5:LRA=11"
   });
-  it("throws for normalize({ twoPass: true })", () => {});
+  it("throws in toArgs() for normalize({ twoPass: true })", () => {
+    // toArgs() cannot run two passes
+  });
   it("produces afade in filter", () => {
     // -af "afade=t=in:d=2:curve=tri"
   });
@@ -761,10 +768,14 @@ describeWithFFmpeg("audio()", () => {
   });
 
   // --- Normalize ---
-  it("normalizes loudness to target LUFS", async () => {
+  it("normalizes loudness (single-pass) to target LUFS", async () => {
     // normalize({ targetLufs: -14 })
-    // Verify: measure output LUFS within ±2 of target
-    // Use: run loudnorm measurement pass on output to verify
+    // Verify: measure output LUFS within ±2 of target using loudnorm measurement pass
+  });
+  it("normalizes loudness (two-pass) to target LUFS", async () => {
+    // normalize({ targetLufs: -14, twoPass: true })
+    // Verify: measure output LUFS within ±1 of target (tighter tolerance — linear gain)
+    // Also verify result.loudness fields are populated
   });
 
   // --- Fades ---
