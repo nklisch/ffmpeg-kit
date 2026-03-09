@@ -30,5 +30,11 @@ ffmpeg -y -f lavfi -i "sine=frequency=300:duration=3:sample_rate=48000" \
   -c:a pcm_s16le -ac 1 \
   audio-speech.wav
 
+# image-1080p.jpg — image for Ken Burns, overlay, image-to-video tests
+# 1920x1080 JPEG
+ffmpeg -y -f lavfi -i "testsrc2=size=1920x1080:rate=1:duration=1" \
+  -frames:v 1 -q:v 2 \
+  image-1080p.jpg
+
 echo "Done. Generated fixtures:"
-ls -lh *.mp4 *.wav 2>/dev/null || true
+ls -lh *.mp4 *.wav *.jpg 2>/dev/null || true

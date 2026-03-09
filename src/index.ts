@@ -49,6 +49,11 @@ export type { FallbackOptions } from "./hardware/fallback.ts";
 export { executeWithFallback } from "./hardware/fallback.ts";
 export type { HwSession, SessionConfig } from "./hardware/session.ts";
 export { acquireSession, withHwSession } from "./hardware/session.ts";
+export type { ExtractBuilder } from "./operations/extract.ts";
+// Operations
+export { extract } from "./operations/extract.ts";
+export type { TransformBuilder } from "./operations/transform.ts";
+export { transform } from "./operations/transform.ts";
 // Schemas
 export {
   audioStreamInfoSchema,
