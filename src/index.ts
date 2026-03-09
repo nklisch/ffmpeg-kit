@@ -148,3 +148,9 @@ export type { TempFile, TempFileOptions } from "./util/tempfile.ts";
 export { createTempFile, createTempFiles } from "./util/tempfile.ts";
 // Utilities
 export { parseTimecode } from "./util/timecode.ts";
+export {
+  DEFAULT_AUDIO_CODEC_ARGS,
+  DEFAULT_VIDEO_CODEC_ARGS,
+  missingFieldError,
+  wrapTryExecute,
+} from "./util/builder-helpers.ts";

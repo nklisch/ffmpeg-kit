@@ -16,6 +16,7 @@ import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { OperationResult, TransformResult } from "../types/results.ts";
 import { buildAtempoChain } from "../util/audio-filters.ts";
+import { DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface TransformState {
@@ -45,14 +46,20 @@ interface TransformState {
 
 // --- Helper builders ---
 
-function missingFieldError(field: string): FFmpegError {
-  return new FFmpegError({
-    code: FFmpegErrorCode.ENCODING_FAILED,
-    message: `${field}() is required`,
-    stderr: "",
-    command: [],
-    exitCode: 0,
-  });
+function validateTransformState(
+  state: TransformState,
+): asserts state is TransformState & { inputPath: string; outputPath: string } {
+  if (state.inputPath === undefined) throw missingFieldError("input");
+  if (state.outputPath === undefined) throw missingFieldError("output");
+  if (state.stabilizeConfig !== undefined) {
+    throw new FFmpegError({
+      code: FFmpegErrorCode.ENCODING_FAILED,
+      message: "stabilize() is not yet implemented",
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
+  }
 }
 
 function resolvePosition(pos: Position | NamedPosition): { x: number; y: number } {
@@ -364,7 +371,7 @@ function buildArgs(
 
   // Codec selection
   if (hasFilters(state) || vfilters.length > 0) {
-    args.push("-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-pix_fmt", "yuv420p");
+    args.push(...DEFAULT_VIDEO_CODEC_ARGS);
   } else {
     args.push("-c", "copy");
   }
@@ -500,18 +507,7 @@ export function transform(): TransformBuilder {
     },
 
     toArgs() {
-      if (state.inputPath === undefined) throw missingFieldError("input");
-      if (state.outputPath === undefined) throw missingFieldError("output");
-
-      if (state.stabilizeConfig !== undefined) {
-        throw new FFmpegError({
-          code: FFmpegErrorCode.ENCODING_FAILED,
-          message: "stabilize() is not yet implemented",
-          stderr: "",
-          command: [],
-          exitCode: 0,
-        });
-      }
+      validateTransformState(state);
 
       const resolved: ResolvedTrim = {};
       if (state.trimStartValue !== undefined) {
@@ -545,18 +541,7 @@ export function transform(): TransformBuilder {
     },
 
     async execute(options) {
-      if (state.inputPath === undefined) throw missingFieldError("input");
-      if (state.outputPath === undefined) throw missingFieldError("output");
-
-      if (state.stabilizeConfig !== undefined) {
-        throw new FFmpegError({
-          code: FFmpegErrorCode.ENCODING_FAILED,
-          message: "stabilize() is not yet implemented",
-          stderr: "",
-          command: [],
-          exitCode: 0,
-        });
-      }
+      validateTransformState(state);
 
       const resolved: ResolvedTrim = {};
       if (state.trimStartValue !== undefined) {
@@ -617,17 +602,7 @@ export function transform(): TransformBuilder {
       };
     },
 
-    async tryExecute(options) {
-      try {
-        const data = await builder.execute(options);
-        return { success: true, data };
-      } catch (error) {
-        if (error instanceof FFmpegError) {
-          return { success: false, error };
-        }
-        throw error;
-      }
-    },
+    tryExecute: wrapTryExecute((options) => builder.execute(options)),
   };
 
   return builder;

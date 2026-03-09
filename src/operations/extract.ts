@@ -6,6 +6,7 @@ import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { ExtractResult, OperationResult } from "../types/results.ts";
+import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface ExtractState {
@@ -19,14 +20,11 @@ interface ExtractState {
   outputPath?: string;
 }
 
-function missingFieldError(field: string): FFmpegError {
-  return new FFmpegError({
-    code: FFmpegErrorCode.ENCODING_FAILED,
-    message: `${field}() is required`,
-    stderr: "",
-    command: [],
-    exitCode: 0,
-  });
+function validateExtractState(
+  state: ExtractState,
+): asserts state is ExtractState & { inputPath: string; outputPath: string } {
+  if (state.inputPath === undefined) throw missingFieldError("input");
+  if (state.outputPath === undefined) throw missingFieldError("output");
 }
 
 function buildArgs(state: ExtractState, resolvedTimestamp?: number): string[] {
@@ -134,8 +132,7 @@ export function extract(): ExtractBuilder {
     },
 
     toArgs() {
-      if (state.inputPath === undefined) throw missingFieldError("input");
-      if (state.outputPath === undefined) throw missingFieldError("output");
+      validateExtractState(state);
 
       let resolvedTimestamp: number | undefined;
       if (state.timestampValue !== undefined) {
@@ -156,8 +153,7 @@ export function extract(): ExtractBuilder {
     },
 
     async execute(options) {
-      if (state.inputPath === undefined) throw missingFieldError("input");
-      if (state.outputPath === undefined) throw missingFieldError("output");
+      validateExtractState(state);
 
       let resolvedTimestamp: number | undefined;
       if (state.timestampValue !== undefined) {
@@ -186,17 +182,7 @@ export function extract(): ExtractBuilder {
       };
     },
 
-    async tryExecute(options) {
-      try {
-        const data = await builder.execute(options);
-        return { success: true, data };
-      } catch (error) {
-        if (error instanceof FFmpegError) {
-          return { success: false, error };
-        }
-        throw error;
-      }
-    },
+    tryExecute: wrapTryExecute((options) => builder.execute(options)),
   };
 
   return builder;

@@ -8,6 +8,7 @@ import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ClipConfig, TransitionConfig } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ConcatResult, OperationResult } from "../types/results.ts";
+import { DEFAULT_AUDIO_CODEC_ARGS, DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
 
 // --- Internal State ---
 
@@ -46,14 +47,19 @@ export interface ConcatBuilder {
 
 // --- Helpers ---
 
-function missingFieldError(field: string): FFmpegError {
-  return new FFmpegError({
-    code: FFmpegErrorCode.ENCODING_FAILED,
-    message: `${field}() is required`,
-    stderr: "",
-    command: [],
-    exitCode: 0,
-  });
+function validateConcatState(
+  state: ConcatState,
+): asserts state is ConcatState & { outputPath: string } {
+  if (state.clips.length < 2) {
+    throw new FFmpegError({
+      code: FFmpegErrorCode.ENCODING_FAILED,
+      message: "concat() requires at least 2 clips",
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
+  }
+  if (state.outputPath === undefined) throw missingFieldError("output");
 }
 
 function needsFilterComplex(state: ConcatState): boolean {
@@ -271,20 +277,7 @@ function buildFilterComplexArgs(state: ConcatState, clipInfos: ClipInfo[]): stri
   }
 
   // Codec for filter_complex path
-  args.push(
-    "-c:v",
-    "libx264",
-    "-preset",
-    "ultrafast",
-    "-crf",
-    "23",
-    "-pix_fmt",
-    "yuv420p",
-    "-c:a",
-    "aac",
-    "-b:a",
-    "128k",
-  );
+  args.push(...DEFAULT_VIDEO_CODEC_ARGS, ...DEFAULT_AUDIO_CODEC_ARGS);
 
   // biome-ignore lint/style/noNonNullAssertion: validated before calling
   args.push(state.outputPath!);
@@ -360,18 +353,7 @@ export function concat(): ConcatBuilder {
     },
 
     toArgs() {
-      if (state.clips.length < 2) {
-        throw new FFmpegError({
-          code: FFmpegErrorCode.ENCODING_FAILED,
-          message: "concat() requires at least 2 clips",
-          stderr: "",
-          command: [],
-          exitCode: 0,
-        });
-      }
-      if (state.outputPath === undefined) {
-        throw missingFieldError("output");
-      }
+      validateConcatState(state);
 
       if (needsFilterComplex(state)) {
         throw new FFmpegError({
@@ -391,21 +373,9 @@ export function concat(): ConcatBuilder {
     },
 
     async execute(options) {
-      if (state.clips.length < 2) {
-        throw new FFmpegError({
-          code: FFmpegErrorCode.ENCODING_FAILED,
-          message: "concat() requires at least 2 clips",
-          stderr: "",
-          command: [],
-          exitCode: 0,
-        });
-      }
-      if (state.outputPath === undefined) {
-        throw missingFieldError("output");
-      }
+      validateConcatState(state);
 
-      // biome-ignore lint/style/noNonNullAssertion: validated above
-      const outPath = state.outputPath!;
+      const outPath = state.outputPath;
 
       if (!needsFilterComplex(state)) {
         // Demuxer path
@@ -452,17 +422,7 @@ export function concat(): ConcatBuilder {
       };
     },
 
-    async tryExecute(options) {
-      try {
-        const data = await this.execute(options);
-        return { success: true, data };
-      } catch (err) {
-        if (err instanceof FFmpegError) {
-          return { success: false, error: err };
-        }
-        throw err;
-      }
-    },
+    tryExecute: wrapTryExecute((options) => builder.execute(options)),
   };
 
   return builder;

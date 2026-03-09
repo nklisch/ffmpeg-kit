@@ -7,6 +7,7 @@ import type { AudioInputConfig, DuckConfig, FadeCurve, NormalizeConfig } from ".
 import type { ExecuteOptions } from "../types/options.ts";
 import type { AudioResult, OperationResult } from "../types/results.ts";
 import { buildAtempoChain } from "../util/audio-filters.ts";
+import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
 
 // --- Internal State ---
 
@@ -113,16 +114,23 @@ export interface AudioBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<AudioResult>>;
 }
 
-// --- Helper ---
+// --- Helpers ---
 
-function missingFieldError(field: string): FFmpegError {
-  return new FFmpegError({
-    code: FFmpegErrorCode.ENCODING_FAILED,
-    message: `${field}() is required`,
-    stderr: "",
-    command: [],
-    exitCode: 0,
-  });
+function validateAudioState(
+  state: AudioState,
+): asserts state is AudioState & { inputPath: string } {
+  if (state.inputPath === undefined) throw missingFieldError("input");
+  if (state.detectSilenceConfig === undefined && state.outputPath === undefined) {
+    throw missingFieldError("output");
+  }
+}
+
+function pushCodecArgs(args: string[], state: AudioState): void {
+  if (state.codecValue !== undefined) args.push("-c:a", state.codecValue);
+  if (state.bitrateValue !== undefined) args.push("-b:a", state.bitrateValue);
+  if (state.sampleRateValue !== undefined) args.push("-ar", String(state.sampleRateValue));
+  if (state.channelsValue !== undefined) args.push("-ac", String(state.channelsValue));
+  if (state.channelLayoutValue !== undefined) args.push("-channel_layout", state.channelLayoutValue);
 }
 
 // --- Filter Chain Construction ---
@@ -331,21 +339,7 @@ function buildMultiInputArgs(state: AudioState): string[] {
   }
 
   // Output codec settings
-  if (state.codecValue !== undefined) {
-    args.push("-c:a", state.codecValue);
-  }
-  if (state.bitrateValue !== undefined) {
-    args.push("-b:a", state.bitrateValue);
-  }
-  if (state.sampleRateValue !== undefined) {
-    args.push("-ar", String(state.sampleRateValue));
-  }
-  if (state.channelsValue !== undefined) {
-    args.push("-ac", String(state.channelsValue));
-  }
-  if (state.channelLayoutValue !== undefined) {
-    args.push("-channel_layout", state.channelLayoutValue);
-  }
+  pushCodecArgs(args, state);
 
   // biome-ignore lint/style/noNonNullAssertion: validated before calling
   args.push(state.outputPath!);
@@ -395,21 +389,7 @@ function buildSingleInputArgs(state: AudioState, fadeOutStart?: number): string[
   }
 
   // Output codec settings
-  if (state.codecValue !== undefined) {
-    args.push("-c:a", state.codecValue);
-  }
-  if (state.bitrateValue !== undefined) {
-    args.push("-b:a", state.bitrateValue);
-  }
-  if (state.sampleRateValue !== undefined) {
-    args.push("-ar", String(state.sampleRateValue));
-  }
-  if (state.channelsValue !== undefined) {
-    args.push("-ac", String(state.channelsValue));
-  }
-  if (state.channelLayoutValue !== undefined) {
-    args.push("-channel_layout", state.channelLayoutValue);
-  }
+  pushCodecArgs(args, state);
 
   // biome-ignore lint/style/noNonNullAssertion: validated before calling
   args.push(state.outputPath!);
@@ -458,7 +438,7 @@ interface LoudnormMeasurement {
   target_offset: string;
 }
 
-function parseLoudnormJson(stderr: string): LoudnormMeasurement {
+function extractLoudnormJson(stderr: string): LoudnormMeasurement | null {
   // FFmpeg loudnorm prints: "[Parsed_loudnorm_0 @ ...] " on one line,
   // then the JSON block starting with "{" on the next line(s).
   const lines = stderr.split("\n");
@@ -468,13 +448,11 @@ function parseLoudnormJson(stderr: string): LoudnormMeasurement {
 
   for (const line of lines) {
     if (line.includes("[Parsed_loudnorm")) {
-      // The JSON may start on same line OR next line
       const braceIdx = line.indexOf("{");
       if (braceIdx !== -1) {
         inBlock = true;
         jsonLines.push(line.slice(braceIdx));
       } else {
-        // JSON starts on the next line
         afterLoudnorm = true;
       }
       continue;
@@ -491,13 +469,17 @@ function parseLoudnormJson(stderr: string): LoudnormMeasurement {
     }
     if (inBlock) {
       jsonLines.push(line);
-      if (line.trim() === "}") {
-        break;
-      }
+      if (line.trim() === "}") break;
     }
   }
 
-  if (jsonLines.length === 0) {
+  if (jsonLines.length === 0) return null;
+  return JSON.parse(jsonLines.join("\n")) as LoudnormMeasurement;
+}
+
+function parseLoudnormJson(stderr: string): LoudnormMeasurement {
+  const parsed = extractLoudnormJson(stderr);
+  if (parsed === null) {
     throw new FFmpegError({
       code: FFmpegErrorCode.ENCODING_FAILED,
       message: "Two-pass normalization: failed to parse loudnorm measurement from ffmpeg stderr",
@@ -506,8 +488,6 @@ function parseLoudnormJson(stderr: string): LoudnormMeasurement {
       exitCode: 0,
     });
   }
-
-  const parsed = JSON.parse(jsonLines.join("\n")) as LoudnormMeasurement;
   return parsed;
 }
 
@@ -666,12 +646,7 @@ export function audio(): AudioBuilder {
     },
 
     toArgs() {
-      if (state.inputPath === undefined) {
-        throw missingFieldError("input");
-      }
-      if (state.detectSilenceConfig === undefined && state.outputPath === undefined) {
-        throw missingFieldError("output");
-      }
+      validateAudioState(state);
       if (state.normalizeConfig?.twoPass === true) {
         throw new FFmpegError({
           code: FFmpegErrorCode.ENCODING_FAILED,
@@ -691,12 +666,7 @@ export function audio(): AudioBuilder {
     },
 
     async execute(options) {
-      if (state.inputPath === undefined) {
-        throw missingFieldError("input");
-      }
-      if (state.detectSilenceConfig === undefined && state.outputPath === undefined) {
-        throw missingFieldError("output");
-      }
+      validateAudioState(state);
 
       // Two-pass normalization
       if (state.normalizeConfig?.twoPass === true) {
@@ -725,18 +695,7 @@ export function audio(): AudioBuilder {
         const pass2Args = ["-y", "-i", state.inputPath, "-af", pass2Filter];
 
         // Add output codec settings
-        if (state.codecValue !== undefined) {
-          pass2Args.push("-c:a", state.codecValue);
-        }
-        if (state.bitrateValue !== undefined) {
-          pass2Args.push("-b:a", state.bitrateValue);
-        }
-        if (state.sampleRateValue !== undefined) {
-          pass2Args.push("-ar", String(state.sampleRateValue));
-        }
-        if (state.channelsValue !== undefined) {
-          pass2Args.push("-ac", String(state.channelsValue));
-        }
+        pushCodecArgs(pass2Args, state);
 
         // biome-ignore lint/style/noNonNullAssertion: validated above
         pass2Args.push(state.outputPath!);
@@ -817,17 +776,7 @@ export function audio(): AudioBuilder {
       };
     },
 
-    async tryExecute(options) {
-      try {
-        const data = await this.execute(options);
-        return { success: true, data };
-      } catch (err) {
-        if (err instanceof FFmpegError) {
-          return { success: false, error: err };
-        }
-        throw err;
-      }
-    },
+    tryExecute: wrapTryExecute((options) => builder.execute(options)),
   };
 
   return builder;
@@ -836,51 +785,14 @@ export function audio(): AudioBuilder {
 function parseLoudnessStats(
   stderr: string,
 ): { integratedLufs: number; truePeakDbfs: number; loudnessRange: number } | null {
-  // Try to parse from loudnorm JSON output
-  // Format: "[Parsed_loudnorm_0 @ ...] " then JSON on next line(s)
   try {
-    const lines = stderr.split("\n");
-    let inBlock = false;
-    let afterLoudnorm = false;
-    const jsonLines: string[] = [];
-    for (const line of lines) {
-      if (line.includes("[Parsed_loudnorm")) {
-        const braceIdx = line.indexOf("{");
-        if (braceIdx !== -1) {
-          inBlock = true;
-          jsonLines.push(line.slice(braceIdx));
-        } else {
-          afterLoudnorm = true;
-        }
-        continue;
-      }
-      if (afterLoudnorm) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith("{")) {
-          inBlock = true;
-          afterLoudnorm = false;
-          jsonLines.push(trimmed);
-          if (trimmed.endsWith("}")) break;
-          continue;
-        }
-      }
-      if (inBlock) {
-        jsonLines.push(line);
-        if (line.trim() === "}") break;
-      }
-    }
-    if (jsonLines.length > 0) {
-      const parsed = JSON.parse(jsonLines.join("\n")) as Record<string, string>;
-      const input_i = parseFloat(parsed.input_i ?? "NaN");
-      const input_tp = parseFloat(parsed.input_tp ?? "NaN");
-      const input_lra = parseFloat(parsed.input_lra ?? "NaN");
-      if (!Number.isNaN(input_i) && !Number.isNaN(input_tp) && !Number.isNaN(input_lra)) {
-        return {
-          integratedLufs: input_i,
-          truePeakDbfs: input_tp,
-          loudnessRange: input_lra,
-        };
-      }
+    const parsed = extractLoudnormJson(stderr);
+    if (parsed === null) return null;
+    const input_i = parseFloat(parsed.input_i);
+    const input_tp = parseFloat(parsed.input_tp);
+    const input_lra = parseFloat(parsed.input_lra);
+    if (!Number.isNaN(input_i) && !Number.isNaN(input_tp) && !Number.isNaN(input_lra)) {
+      return { integratedLufs: input_i, truePeakDbfs: input_tp, loudnessRange: input_lra };
     }
   } catch {
     // ignore parse errors
