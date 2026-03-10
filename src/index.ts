@@ -253,3 +253,25 @@ export {
 } from "./filters/video.ts";
 // Utilities
 export { parseTimecode } from "./util/timecode.ts";
+// Convenience
+export { batch } from "./convenience/batch.ts";
+export type { BatchResult, BatchItemResult } from "./types/results.ts";
+export { estimateSize, parseBitrate, formatBytes } from "./convenience/estimate.ts";
+export { normalizeMedia } from "./convenience/normalize-media.ts";
+export { pipeline } from "./convenience/pipeline.ts";
+export type { PipelineBuilder } from "./convenience/pipeline.ts";
+export { compress, extractAudio, imageToVideo, remux, resize } from "./convenience/quick.ts";
+export { detectSilence, splitOnSilence, trimSilence } from "./convenience/silence.ts";
+export { smartTranscode, trySmartTranscode } from "./convenience/smart.ts";
+export { thumbnailSheet } from "./convenience/thumbnail-sheet.ts";
+export { waveform } from "./convenience/waveform.ts";
+export type {
+  EstimateResult,
+  PipelineResult,
+  SilenceRange,
+  SmartTranscodeResult,
+  SplitSegment,
+  ThumbnailSheetResult,
+  TranscodeAction,
+  WaveformResult,
+} from "./types/results.ts";
