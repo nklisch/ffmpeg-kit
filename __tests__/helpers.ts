@@ -19,6 +19,8 @@ export const FIXTURES = {
   audioSilence: join(FIXTURES_DIR, "audio-silence.wav"),
   image1080p: join(FIXTURES_DIR, "image-1080p.jpg"),
   imageSmall: join(FIXTURES_DIR, "image-small.png"),
+  subtitle: join(FIXTURES_DIR, "subtitle.srt"),
+  chapters: join(FIXTURES_DIR, "chapters.mkv"),
 };
 
 /**

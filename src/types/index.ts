@@ -13,6 +13,7 @@ export type {
   PresetConfig,
   QualityTier,
   RateControlMode,
+  SubtitleFormat,
   VideoCodec,
 } from "./codecs.ts";
 // Error types

@@ -59,12 +59,46 @@ export type { ExtractBuilder } from "./operations/extract.ts";
 // Operations
 export { extract } from "./operations/extract.ts";
 export type {
+  DitherMethod,
+  GifBuilder,
+  PaletteMode,
+} from "./operations/gif.ts";
+export { gif } from "./operations/gif.ts";
+export type {
+  ImageBuilder,
+  ImageOutputFormat,
+  ImageSequenceConfig,
+  SilentAudioConfig,
+  SolidColorConfig,
+  TestPatternConfig,
+  ToVideoConfig,
+} from "./operations/image.ts";
+export { image } from "./operations/image.ts";
+export type {
   OverlayBuilder,
   OverlayConfig,
   PipConfig,
   WatermarkConfig,
 } from "./operations/overlay.ts";
 export { overlay } from "./operations/overlay.ts";
+export type {
+  DashBuilder,
+  HlsBuilder,
+  HlsEncryptConfig,
+  HlsFlag,
+  HlsPlaylistType,
+  HlsSegmentType,
+  HlsVariantConfig,
+} from "./operations/streaming.ts";
+export { dash, hls } from "./operations/streaming.ts";
+export type {
+  ConvertSubConfig,
+  ExtractSubConfig,
+  HardBurnConfig,
+  SoftSubConfig,
+  SubtitleBuilder,
+} from "./operations/subtitle.ts";
+export { subtitle } from "./operations/subtitle.ts";
 export type {
   CounterConfig,
   ScrollConfig,
@@ -140,6 +174,7 @@ export type {
   StreamDisposition,
   StreamInfo,
   StreamResult,
+  SubtitleFormat,
   SubtitleResult,
   SubtitleStreamInfo,
   TextResult,

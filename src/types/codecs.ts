@@ -155,6 +155,8 @@ export interface PresetConfig {
   metadata?: Record<string, string>;
 }
 
+export type SubtitleFormat = "srt" | "ass" | "ssa" | "webvtt" | "dvbsub" | "pgs" | "mov_text";
+
 export type ExportPreset =
   | "youtube_hd"
   | "youtube_4k"
