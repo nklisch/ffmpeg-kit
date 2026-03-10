@@ -1,6 +1,9 @@
+import { statSync } from "node:fs";
+import { probe } from "../core/probe.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult } from "../types/results.ts";
+import type { ProbeResult } from "../types/probe.ts";
 
 export function missingFieldError(field: string): FFmpegError {
   return new FFmpegError({
@@ -40,3 +43,25 @@ export const DEFAULT_VIDEO_CODEC_ARGS = [
 ] as const;
 
 export const DEFAULT_AUDIO_CODEC_ARGS = ["-c:a", "aac", "-b:a", "128k"] as const;
+
+export interface BaseProbeInfo {
+  outputPath: string;
+  sizeBytes: number;
+  duration: number;
+  probeResult: ProbeResult;
+}
+
+export async function probeOutput(outputPath: string): Promise<BaseProbeInfo> {
+  const fileStat = statSync(outputPath);
+  const probeResult = await probe(outputPath, { noCache: true });
+  const duration = probeResult.format.duration ?? 0;
+  return { outputPath, sizeBytes: fileStat.size, duration, probeResult };
+}
+
+export function resolveDimensions(
+  dims: { width?: number; height?: number } | undefined,
+  autoValue = -2,
+): { w: number; h: number } {
+  if (!dims) return { w: autoValue, h: autoValue };
+  return { w: dims.width ?? autoValue, h: dims.height ?? autoValue };
+}

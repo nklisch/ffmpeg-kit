@@ -1,11 +1,9 @@
-import { statSync } from "node:fs";
 import { execute as runFFmpeg } from "../core/execute.ts";
-import { probe } from "../core/probe.ts";
 import type { Timestamp } from "../types/base.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { GifResult, OperationResult } from "../types/results.ts";
-import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import { missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 type DitherMethod = "bayer" | "heckbert" | "floyd_steinberg" | "sierra2" | "sierra2_4a" | "none";
@@ -36,8 +34,7 @@ function buildBaseFilter(state: GifState): string {
   const fps = state.fpsValue ?? 10;
   let filter = `fps=${fps}`;
   if (state.dimensions !== undefined) {
-    const w = state.dimensions.width ?? -2;
-    const h = state.dimensions.height ?? -2;
+    const { w, h } = resolveDimensions(state.dimensions);
     filter += `,scale=${w}:${h}:flags=lanczos`;
   }
   return filter;
@@ -109,47 +106,47 @@ export function gif(): GifBuilder {
   const builder: GifBuilder = {
     input(path) {
       state.inputPath = path;
-      return builder;
+      return this;
     },
     size(dimensions) {
       state.dimensions = dimensions;
-      return builder;
+      return this;
     },
     fps(rate) {
       state.fpsValue = rate;
-      return builder;
+      return this;
     },
     trimStart(timestamp) {
       state.trimStartValue = timestamp;
-      return builder;
+      return this;
     },
     duration(seconds) {
       state.durationValue = seconds;
-      return builder;
+      return this;
     },
     dither(method) {
       state.ditherMethod = method;
-      return builder;
+      return this;
     },
     paletteMode(mode) {
       state.paletteModeValue = mode;
-      return builder;
+      return this;
     },
     maxColors(count) {
       state.maxColorsValue = count;
-      return builder;
+      return this;
     },
     loop(count) {
       state.loopValue = count;
-      return builder;
+      return this;
     },
     optimizePalette(enabled = true) {
       state.optimizePaletteEnabled = enabled;
-      return builder;
+      return this;
     },
     output(path) {
       state.outputPath = path;
-      return builder;
+      return this;
     },
 
     toArgs() {
@@ -162,15 +159,13 @@ export function gif(): GifBuilder {
       const args = buildArgs(state);
       await runFFmpeg(args, options);
 
-      const result = await probe(state.outputPath, { noCache: true });
-      const stat = statSync(state.outputPath);
-      const videoStream = result.streams.find((s): s is VideoStreamInfo => s.type === "video");
-      const duration = result.format.duration ?? 0;
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(state.outputPath);
+      const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
       const fps = state.fpsValue ?? 10;
 
       return {
-        outputPath: state.outputPath,
-        sizeBytes: stat.size,
+        outputPath,
+        sizeBytes,
         width: videoStream?.width ?? 0,
         height: videoStream?.height ?? 0,
         duration,

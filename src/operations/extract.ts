@@ -1,12 +1,11 @@
-import { statSync } from "node:fs";
 import { execute as runFFmpeg } from "../core/execute.ts";
-import { getDuration, probe } from "../core/probe.ts";
+import { getDuration } from "../core/probe.ts";
 import type { Timestamp } from "../types/base.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { ExtractResult, OperationResult } from "../types/results.ts";
-import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import { missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface ExtractState {
@@ -44,8 +43,7 @@ function buildArgs(state: ExtractState, resolvedTimestamp?: number): string[] {
     vfilters.push("thumbnail=300");
   }
   if (state.dimensions !== undefined) {
-    const w = state.dimensions.width ?? -2;
-    const h = state.dimensions.height ?? -2;
+    const { w, h } = resolveDimensions(state.dimensions);
     vfilters.push(`scale=${w}:${h}`);
   }
   if (vfilters.length > 0) {
@@ -100,35 +98,35 @@ export function extract(): ExtractBuilder {
   const builder: ExtractBuilder = {
     input(path) {
       state.inputPath = path;
-      return builder;
+      return this;
     },
     timestamp(position) {
       state.timestampValue = position;
-      return builder;
+      return this;
     },
     size(dimensions) {
       state.dimensions = dimensions;
-      return builder;
+      return this;
     },
     format(fmt) {
       state.outputFormat = fmt;
-      return builder;
+      return this;
     },
     quality(q) {
       state.qualityValue = q;
-      return builder;
+      return this;
     },
     frames(count) {
       state.frameCount = count;
-      return builder;
+      return this;
     },
     thumbnail(enabled = true) {
       state.useThumbnail = enabled;
-      return builder;
+      return this;
     },
     output(path) {
       state.outputPath = path;
-      return builder;
+      return this;
     },
 
     toArgs() {
@@ -169,16 +167,15 @@ export function extract(): ExtractBuilder {
       const args = buildArgs(state, resolvedTimestamp);
       await runFFmpeg(args, options);
 
-      const result = await probe(state.outputPath, { noCache: true });
-      const stat = statSync(state.outputPath);
-      const videoStream = result.streams.find((s): s is VideoStreamInfo => s.type === "video");
+      const { outputPath, sizeBytes, probeResult } = await probeOutput(state.outputPath);
+      const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
 
       return {
-        outputPath: state.outputPath,
+        outputPath,
         width: videoStream?.width ?? 0,
         height: videoStream?.height ?? 0,
-        format: result.format.formatName,
-        sizeBytes: stat.size,
+        format: probeResult.format.formatName,
+        sizeBytes,
       };
     },
 

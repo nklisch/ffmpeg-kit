@@ -5,7 +5,13 @@ import type { PixelFormat, VideoCodec } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { ImageResult, OperationResult } from "../types/results.ts";
-import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import {
+  DEFAULT_AUDIO_CODEC_ARGS,
+  DEFAULT_VIDEO_CODEC_ARGS,
+  missingFieldError,
+  resolveDimensions,
+  wrapTryExecute,
+} from "../util/builder-helpers.ts";
 
 // --- Config Types ---
 
@@ -96,12 +102,12 @@ function buildArgs(state: ImageState): string[] {
       source = `${tc.type}=size=${tc.width}x${tc.height}:rate=${fps}:duration=${tc.duration}`;
     }
     args.push("-f", "lavfi", "-i", source);
-    args.push("-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-pix_fmt", "yuv420p");
+    args.push(...DEFAULT_VIDEO_CODEC_ARGS);
   } else if (state.solidColorConfig !== undefined) {
     const sc = state.solidColorConfig;
     const source = `color=c=${sc.color}:size=${sc.width}x${sc.height}:rate=25:duration=${sc.duration}`;
     args.push("-f", "lavfi", "-i", source);
-    args.push("-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-pix_fmt", "yuv420p");
+    args.push(...DEFAULT_VIDEO_CODEC_ARGS);
   } else if (state.silentAudioConfig !== undefined) {
     const sa = state.silentAudioConfig;
     const sampleRate = sa.sampleRate ?? 48000;
@@ -109,7 +115,7 @@ function buildArgs(state: ImageState): string[] {
     const source = `anullsrc=r=${sampleRate}:cl=${layout}`;
     args.push("-f", "lavfi", "-i", source);
     args.push("-t", String(sa.duration));
-    args.push("-c:a", "aac", "-b:a", "128k");
+    args.push(...DEFAULT_AUDIO_CODEC_ARGS);
   } else if (state.sequenceConfig !== undefined) {
     const sc = state.sequenceConfig;
     const fps = sc.fps ?? 25;
@@ -118,9 +124,10 @@ function buildArgs(state: ImageState): string[] {
       args.push("-start_number", String(sc.startNumber));
     }
     args.push("-i", sc.pattern);
-    const pixFmt = sc.pixelFormat ?? "yuv420p";
-    args.push("-pix_fmt", pixFmt);
-    args.push("-c:v", "libx264", "-preset", "ultrafast", "-crf", "23");
+    args.push(...DEFAULT_VIDEO_CODEC_ARGS);
+    if (sc.pixelFormat !== undefined) {
+      args.push("-pix_fmt", sc.pixelFormat);
+    }
   } else if (state.toVideoConfig !== undefined) {
     const tv = state.toVideoConfig;
     args.push("-loop", "1");
@@ -133,8 +140,7 @@ function buildArgs(state: ImageState): string[] {
     const codec = tv.codec ?? "libx264";
     args.push("-c:v", codec, "-preset", "ultrafast", "-crf", "23", "-pix_fmt", "yuv420p");
     if (state.resizeDimensions !== undefined) {
-      const w = state.resizeDimensions.width ?? -2;
-      const h = state.resizeDimensions.height ?? -2;
+      const { w, h } = resolveDimensions(state.resizeDimensions);
       args.push("-vf", `scale=${w}:${h}`);
     }
   } else {
@@ -144,8 +150,7 @@ function buildArgs(state: ImageState): string[] {
 
     const vfilters: string[] = [];
     if (state.resizeDimensions !== undefined) {
-      const w = state.resizeDimensions.width ?? -2;
-      const h = state.resizeDimensions.height ?? -2;
+      const { w, h } = resolveDimensions(state.resizeDimensions);
       vfilters.push(`scale=${w}:${h}`);
     }
     if (vfilters.length > 0) {
@@ -197,39 +202,39 @@ export function image(): ImageBuilder {
   const builder: ImageBuilder = {
     input(path) {
       state.inputPath = path;
-      return builder;
+      return this;
     },
     imageSequence(pattern, options) {
       state.sequenceConfig = { pattern, ...options };
-      return builder;
+      return this;
     },
     convert(format) {
       state.convertFormat = format;
-      return builder;
+      return this;
     },
     resize(dimensions) {
       state.resizeDimensions = dimensions;
-      return builder;
+      return this;
     },
     toVideo(config) {
       state.toVideoConfig = config;
-      return builder;
+      return this;
     },
     testPattern(config) {
       state.testPatternConfig = config;
-      return builder;
+      return this;
     },
     solidColor(config) {
       state.solidColorConfig = config;
-      return builder;
+      return this;
     },
     silentAudio(config) {
       state.silentAudioConfig = config;
-      return builder;
+      return this;
     },
     output(path) {
       state.outputPath = path;
-      return builder;
+      return this;
     },
 
     toArgs() {

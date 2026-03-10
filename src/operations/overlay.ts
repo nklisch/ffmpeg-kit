@@ -1,6 +1,5 @@
-import { statSync } from "node:fs";
 import { execute as runFFmpeg } from "../core/execute.ts";
-import { probe } from "../core/probe.ts";
+import { enable, timeRange } from "../filters/helpers.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { BlendMode, OverlayAnchor, OverlayPosition } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
@@ -9,6 +8,7 @@ import {
   DEFAULT_AUDIO_CODEC_ARGS,
   DEFAULT_VIDEO_CODEC_ARGS,
   missingFieldError,
+  probeOutput,
   wrapTryExecute,
 } from "../util/builder-helpers.ts";
 
@@ -228,10 +228,9 @@ function buildFilterComplex(
     if (startTime !== undefined && entry.duration !== undefined) {
       endTime = startTime + entry.duration;
     }
-    if (startTime !== undefined && endTime !== undefined) {
-      overlayFilter += `:enable='between(t,${startTime},${endTime})'`;
-    } else if (startTime !== undefined) {
-      overlayFilter += `:enable='gte(t,${startTime})'`;
+    const expr = timeRange({ start: startTime, end: endTime });
+    if (expr) {
+      overlayFilter += `:${enable(expr)}`;
     }
 
     filterParts.push(`[${prevLabel}][${ovLabel}]${overlayFilter}[${stageLabel}]`);
@@ -320,16 +319,8 @@ export function overlay(): OverlayBuilder {
     async execute(options) {
       validateOverlayState(state);
       await runFFmpeg(buildOverlayArgs(state), options);
-
-      const fileStat = statSync(state.outputPath);
-      const probeResult = await probe(state.outputPath, { noCache: true });
-      const duration = probeResult.format.duration ?? 0;
-
-      return {
-        outputPath: state.outputPath,
-        duration,
-        sizeBytes: fileStat.size,
-      };
+      const { outputPath, duration, sizeBytes } = await probeOutput(state.outputPath);
+      return { outputPath, duration, sizeBytes };
     },
 
     tryExecute: wrapTryExecute((options) => builder.execute(options)),

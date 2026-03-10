@@ -1,14 +1,14 @@
-import { statSync, unlinkSync, writeFileSync } from "node:fs";
+import { unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execute as runFFmpeg } from "../core/execute.ts";
-import { getAudioStream, getDuration, probe } from "../core/probe.ts";
+import { getAudioStream, getDuration } from "../core/probe.ts";
 import type { HwAccelMode } from "../types/codecs.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ClipConfig, TransitionConfig } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ConcatResult, OperationResult } from "../types/results.ts";
-import { DEFAULT_AUDIO_CODEC_ARGS, DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import { DEFAULT_AUDIO_CODEC_ARGS, DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
 
 // --- Internal State ---
 
@@ -391,15 +391,12 @@ export function concat(): ConcatBuilder {
           }
         }
 
-        const fileStat = statSync(outPath);
-        const probeResult = await probe(outPath);
-        const duration = probeResult.format.duration ?? 0;
-
+        const { outputPath, duration, sizeBytes } = await probeOutput(outPath);
         return {
-          outputPath: outPath,
+          outputPath,
           duration,
           clipCount: state.clips.length,
-          sizeBytes: fileStat.size,
+          sizeBytes,
           method: "demuxer",
         };
       }
@@ -409,15 +406,12 @@ export function concat(): ConcatBuilder {
       const args = buildFilterComplexArgs(state, clipInfos);
       await runFFmpeg(args, options);
 
-      const fileStat = statSync(outPath);
-      const probeResult = await probe(outPath);
-      const duration = probeResult.format.duration ?? 0;
-
+      const { outputPath, duration, sizeBytes } = await probeOutput(outPath);
       return {
-        outputPath: outPath,
+        outputPath,
         duration,
         clipCount: state.clips.length,
-        sizeBytes: fileStat.size,
+        sizeBytes,
         method: "filter_complex",
       };
     },

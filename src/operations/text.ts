@@ -1,6 +1,7 @@
-import { statSync } from "node:fs";
 import { execute as runFFmpeg } from "../core/execute.ts";
-import { getDuration, probe } from "../core/probe.ts";
+import { getDuration } from "../core/probe.ts";
+import { escapeDrawtext } from "../core/args.ts";
+import { enable, timeRange } from "../filters/helpers.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { OverlayAnchor } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
@@ -8,6 +9,7 @@ import type { OperationResult, TextResult } from "../types/results.ts";
 import {
   DEFAULT_VIDEO_CODEC_ARGS,
   missingFieldError,
+  probeOutput,
   wrapTryExecute,
 } from "../util/builder-helpers.ts";
 
@@ -102,19 +104,6 @@ function validateTextState(
   if (!state.outputPath) throw missingFieldError("output");
 }
 
-/**
- * Escape text for FFmpeg drawtext filter.
- * Since we pass via spawn (not shell), only FFmpeg-level escaping is needed.
- */
-function escapeDrawtext(text: string): string {
-  return text
-    .replace(/\\/g, "\\\\\\\\") // \ → \\\\
-    .replace(/:/g, "\\:") // : → \:
-    .replace(/'/g, "'\\\\\\''") // ' → '\\'\'
-    .replace(/;/g, "\\;") // ; → \;
-    .replace(/\[/g, "\\[") // [ → \[
-    .replace(/\]/g, "\\]"); // ] → \]
-}
 
 function anchorToDrawtextXY(anchor: OverlayAnchor, margin: number): { x: string; y: string } {
   switch (anchor) {
@@ -200,10 +189,11 @@ function buildDrawtextFilter(config: TextConfig): string {
   // Time range enable
   if (config.enable !== undefined) {
     params.push(`enable='${config.enable}'`);
-  } else if (config.startTime !== undefined && config.endTime !== undefined) {
-    params.push(`enable='between(t,${config.startTime},${config.endTime})'`);
-  } else if (config.startTime !== undefined) {
-    params.push(`enable='gte(t,${config.startTime})'`);
+  } else {
+    const expr = timeRange({ start: config.startTime, end: config.endTime });
+    if (expr) {
+      params.push(enable(expr));
+    }
   }
 
   return `drawtext=${params.join(":")}`;
@@ -343,16 +333,8 @@ export function text(): TextBuilder {
       }
 
       await runFFmpeg(buildArgs(state, resolvedDuration), options);
-
-      const fileStat = statSync(state.outputPath);
-      const probeResult = await probe(state.outputPath, { noCache: true });
-      const duration = probeResult.format.duration ?? 0;
-
-      return {
-        outputPath: state.outputPath,
-        duration,
-        sizeBytes: fileStat.size,
-      };
+      const { outputPath, duration, sizeBytes } = await probeOutput(state.outputPath);
+      return { outputPath, duration, sizeBytes };
     },
 
     tryExecute: wrapTryExecute((options) => builder.execute(options)),

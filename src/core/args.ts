@@ -1,6 +1,6 @@
 /**
  * Escape a value for use in an FFmpeg filter expression.
- * Escapes special characters: \ ' ; [ ] = :
+ * Use for general filter option values. Escapes: \ ' ; [ ] = :
  */
 export function escapeFilterValue(value: string): string {
   // Order matters: escape backslash first
@@ -12,6 +12,33 @@ export function escapeFilterValue(value: string): string {
     .replace(/]/g, "\\]")
     .replace(/=/g, "\\=")
     .replace(/:/g, "\\:");
+}
+
+/**
+ * Escape text for FFmpeg drawtext filter text= parameter.
+ * Use for drawtext filter only — backslashes need quadruple escaping in this context.
+ */
+export function escapeDrawtext(text: string): string {
+  return text
+    .replace(/\\/g, "\\\\\\\\") // \ → \\\\
+    .replace(/:/g, "\\:") // : → \:
+    .replace(/'/g, "'\\\\\\''") // ' → '\\'\'
+    .replace(/;/g, "\\;") // ; → \;
+    .replace(/\[/g, "\\[") // [ → \[
+    .replace(/\]/g, "\\]"); // ] → \]
+}
+
+/**
+ * Escape a file path for FFmpeg subtitles filter.
+ * Use for subtitles filter file path parameter. Backslashes become forward slashes.
+ */
+export function escapeSubtitlePath(path: string): string {
+  return path
+    .replace(/\\/g, "/")
+    .replace(/:/g, "\\:")
+    .replace(/'/g, "\\'")
+    .replace(/\[/g, "\\[")
+    .replace(/\]/g, "\\]");
 }
 
 /**

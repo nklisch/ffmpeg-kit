@@ -1,4 +1,3 @@
-import { statSync } from "node:fs";
 import { execute as runFFmpeg } from "../core/execute.ts";
 import { probe } from "../core/probe.ts";
 import type { HwAccelMode } from "../types/codecs.ts";
@@ -16,7 +15,7 @@ import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { OperationResult, TransformResult } from "../types/results.ts";
 import { buildAtempoChain } from "../util/audio-filters.ts";
-import { DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import { DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface TransformState {
@@ -125,8 +124,7 @@ function buildKenBurnsFilter(config: KenBurnsConfig, width: number, height: numb
 function buildScaleFilters(state: TransformState): string[] {
   if (state.scaleDimensions === undefined) return [];
 
-  const w = state.scaleDimensions.width ?? -2;
-  const h = state.scaleDimensions.height ?? -2;
+  const { w, h } = resolveDimensions(state.scaleDimensions);
   const flagsSuffix = state.scaleAlgo !== undefined ? `:flags=${state.scaleAlgo}` : "";
   const filters: string[] = [];
 
@@ -589,16 +587,15 @@ export function transform(): TransformBuilder {
       const args = buildArgs(state, resolved, kenBurnsDimensions, addLoop);
       await runFFmpeg(args, options);
 
-      const result = await probe(state.outputPath, { noCache: true });
-      const stat = statSync(state.outputPath);
-      const videoStream = result.streams.find((s): s is VideoStreamInfo => s.type === "video");
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(state.outputPath);
+      const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
 
       return {
-        outputPath: state.outputPath,
-        duration: result.format.duration,
+        outputPath,
+        duration,
         width: videoStream?.width ?? 0,
         height: videoStream?.height ?? 0,
-        sizeBytes: stat.size,
+        sizeBytes,
       };
     },
 

@@ -1,5 +1,6 @@
 import { statSync } from "node:fs";
 import { extname } from "node:path";
+import { escapeSubtitlePath } from "../core/args.ts";
 import { execute as runFFmpeg } from "../core/execute.ts";
 import type { SubtitleFormat } from "../types/codecs.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
@@ -59,17 +60,6 @@ function validateSubtitleState(
   if (!state.inputPath && state.mode?.type !== "convert") throw missingFieldError("input");
   if (!state.mode) throw missingFieldError("softSub, hardBurn, extract, or convert");
   if (!state.outputPath) throw missingFieldError("output");
-}
-
-// --- Subtitle path escaping for the subtitles filter ---
-
-function escapeSubtitlePath(path: string): string {
-  return path
-    .replace(/\\/g, "/")
-    .replace(/:/g, "\\:")
-    .replace(/'/g, "\\'")
-    .replace(/\[/g, "\\[")
-    .replace(/\]/g, "\\]");
 }
 
 // --- Codec selection for soft sub based on output extension ---
@@ -196,7 +186,7 @@ export function subtitle(): SubtitleBuilder {
   const builder: SubtitleBuilder = {
     input(path) {
       state.inputPath = path;
-      return builder;
+      return this;
     },
     softSub(config) {
       if (state.mode?.type === "softSub") {
@@ -204,23 +194,23 @@ export function subtitle(): SubtitleBuilder {
       } else {
         state.mode = { type: "softSub", configs: [config] };
       }
-      return builder;
+      return this;
     },
     hardBurn(config) {
       state.mode = { type: "hardBurn", config };
-      return builder;
+      return this;
     },
     extract(config) {
       state.mode = { type: "extract", config };
-      return builder;
+      return this;
     },
     convert(config) {
       state.mode = { type: "convert", config };
-      return builder;
+      return this;
     },
     output(path) {
       state.outputPath = path;
-      return builder;
+      return this;
     },
 
     toArgs() {

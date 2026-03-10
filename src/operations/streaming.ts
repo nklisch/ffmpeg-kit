@@ -60,9 +60,9 @@ interface HlsState {
   outputPath?: string;
 }
 
-function validateHlsState(
-  state: HlsState,
-): asserts state is HlsState & { inputPath: string; outputPath: string } {
+function validateStreamingState<T extends { inputPath?: string; outputPath?: string }>(
+  state: T,
+): asserts state is T & { inputPath: string; outputPath: string } {
   if (!state.inputPath) throw missingFieldError("input");
   if (!state.outputPath) throw missingFieldError("output");
 }
@@ -189,43 +189,43 @@ export function hls(): HlsBuilder {
   const builder: HlsBuilder = {
     input(path) {
       state.inputPath = path;
-      return builder;
+      return this;
     },
     segmentDuration(seconds) {
       state.segmentDurationValue = seconds;
-      return builder;
+      return this;
     },
     listSize(count) {
       state.listSizeValue = count;
-      return builder;
+      return this;
     },
     segmentFilename(pattern) {
       state.segmentFilenameValue = pattern;
-      return builder;
+      return this;
     },
     segmentType(type) {
       state.segmentTypeValue = type;
-      return builder;
+      return this;
     },
     initFilename(name) {
       state.initFilenameValue = name;
-      return builder;
+      return this;
     },
     playlistType(type) {
       state.playlistTypeValue = type;
-      return builder;
+      return this;
     },
     encrypt(config) {
       state.encryptConfig = config;
-      return builder;
+      return this;
     },
     baseUrl(url) {
       state.baseUrlValue = url;
-      return builder;
+      return this;
     },
     flags(flags) {
       state.hlsFlags = flags;
-      return builder;
+      return this;
     },
     variants(_configs) {
       throw new FFmpegError({
@@ -239,32 +239,32 @@ export function hls(): HlsBuilder {
     },
     videoCodec(codec) {
       state.videoCodecValue = codec;
-      return builder;
+      return this;
     },
     crf(value) {
       state.crfValue = value;
-      return builder;
+      return this;
     },
     audioCodec(codec) {
       state.audioCodecValue = codec;
-      return builder;
+      return this;
     },
     audioBitrate(bitrate) {
       state.audioBitrateValue = bitrate;
-      return builder;
+      return this;
     },
     output(path) {
       state.outputPath = path;
-      return builder;
+      return this;
     },
 
     toArgs() {
-      validateHlsState(state);
+      validateStreamingState(state);
       return buildHlsArgs(state);
     },
 
     async execute(options) {
-      validateHlsState(state);
+      validateStreamingState(state);
       const args = buildHlsArgs(state);
       await runFFmpeg(args, options);
       const segments = collectSegments(state.outputPath);
@@ -296,12 +296,6 @@ interface DashState {
   outputPath?: string;
 }
 
-function validateDashState(
-  state: DashState,
-): asserts state is DashState & { inputPath: string; outputPath: string } {
-  if (!state.inputPath) throw missingFieldError("input");
-  if (!state.outputPath) throw missingFieldError("output");
-}
 
 function buildDashArgs(state: DashState): string[] {
   const args: string[] = ["-y"];
@@ -373,56 +367,56 @@ export function dash(): DashBuilder {
   const builder: DashBuilder = {
     input(path) {
       state.inputPath = path;
-      return builder;
+      return this;
     },
     segmentDuration(seconds) {
       state.segmentDurationValue = seconds;
-      return builder;
+      return this;
     },
     adaptationSets(sets) {
       state.adaptationSetsValue = sets;
-      return builder;
+      return this;
     },
     initSegName(name) {
       state.initSegNameValue = name;
-      return builder;
+      return this;
     },
     mediaSegName(name) {
       state.mediaSegNameValue = name;
-      return builder;
+      return this;
     },
     useTemplate(enabled = true) {
       state.useTemplateValue = enabled;
-      return builder;
+      return this;
     },
     useTimeline(enabled = true) {
       state.useTimelineValue = enabled;
-      return builder;
+      return this;
     },
     singleFile(enabled = true) {
       state.singleFileValue = enabled;
-      return builder;
+      return this;
     },
     videoCodec(codec) {
       state.videoCodecValue = codec;
-      return builder;
+      return this;
     },
     audioCodec(codec) {
       state.audioCodecValue = codec;
-      return builder;
+      return this;
     },
     output(path) {
       state.outputPath = path;
-      return builder;
+      return this;
     },
 
     toArgs() {
-      validateDashState(state);
+      validateStreamingState(state);
       return buildDashArgs(state);
     },
 
     async execute(options) {
-      validateDashState(state);
+      validateStreamingState(state);
       const args = buildDashArgs(state);
       await runFFmpeg(args, options);
       const segments = collectSegments(state.outputPath);

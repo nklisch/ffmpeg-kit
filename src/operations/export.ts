@@ -1,6 +1,5 @@
-import { statSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { execute as runFFmpeg } from "../core/execute.ts";
-import { probe } from "../core/probe.ts";
 import {
   audioEncoderConfigToArgs,
   buildEncoderConfig,
@@ -22,7 +21,7 @@ import type {
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ExportResult, OperationResult } from "../types/results.ts";
-import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import { missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
 import { createTempFile } from "../util/tempfile.ts";
 
 // --- Internal State ---
@@ -470,16 +469,14 @@ export function exportVideo(): ExportBuilder {
         chapterTempFile?.cleanup();
       }
 
-      const fileStat = statSync(outPath);
-      const probeResult = await probe(outPath, { noCache: true });
-      const duration = probeResult.format.duration ?? 0;
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(outPath);
       const videoStream = probeResult.streams.find((s) => s.type === "video");
       const audioStream = probeResult.streams.find((s) => s.type === "audio");
 
       return {
-        outputPath: outPath,
+        outputPath,
         duration,
-        sizeBytes: fileStat.size,
+        sizeBytes,
         videoCodec: videoStream?.codec ?? "unknown",
         audioCodec: audioStream?.codec ?? "unknown",
       };
