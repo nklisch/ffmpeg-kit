@@ -1,11 +1,10 @@
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { getDuration } from "../core/probe.ts";
 import type { Timestamp } from "../types/base.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { ExtractResult, OperationResult } from "../types/results.ts";
-import { missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
+import { defaultDeps, missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface ExtractState {
@@ -92,7 +91,7 @@ export interface ExtractBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<ExtractResult>>;
 }
 
-export function extract(): ExtractBuilder {
+export function extract(deps: BuilderDeps = defaultDeps): ExtractBuilder {
   const state: ExtractState = {};
 
   const builder: ExtractBuilder = {
@@ -157,7 +156,8 @@ export function extract(): ExtractBuilder {
       if (state.timestampValue !== undefined) {
         const ts = state.timestampValue;
         if (typeof ts === "string" && ts.trim().endsWith("%")) {
-          const duration = await getDuration(state.inputPath);
+          const probeResult = await deps.probe(state.inputPath);
+          const duration = probeResult.format.duration ?? 0;
           resolvedTimestamp = parseTimecode(ts, duration);
         } else {
           resolvedTimestamp = parseTimecode(ts);
@@ -165,9 +165,9 @@ export function extract(): ExtractBuilder {
       }
 
       const args = buildArgs(state, resolvedTimestamp);
-      await runFFmpeg(args, options);
+      await deps.execute(args, options);
 
-      const { outputPath, sizeBytes, probeResult } = await probeOutput(state.outputPath);
+      const { outputPath, sizeBytes, probeResult } = await probeOutput(state.outputPath, deps.probe);
       const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
 
       return {

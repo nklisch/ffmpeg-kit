@@ -181,11 +181,19 @@ async function detectLinuxGpuVendor(): Promise<"intel" | "amd" | null> {
  * Detect hardware acceleration capabilities.
  *
  * Cached for process lifetime after first call.
+ * Pass `promiseRef` for per-instance memoization (SDK instances use this).
  * Never throws — gracefully degrades on detection failures.
  */
-export function detectHardware(config?: DetectConfig): Promise<HardwareCapabilities> {
+export function detectHardware(
+  config?: DetectConfig,
+  promiseRef?: { current: Promise<HardwareCapabilities> | null },
+): Promise<HardwareCapabilities> {
+  if (promiseRef) {
+    if (promiseRef.current !== null) return promiseRef.current;
+    promiseRef.current = runDetection(config);
+    return promiseRef.current;
+  }
   if (detectPromise !== null) return detectPromise;
-
   detectPromise = runDetection(config);
   return detectPromise;
 }

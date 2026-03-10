@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { estimateSize } from "../../src/convenience/estimate.ts";
-import { compress } from "../../src/convenience/quick.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { FIXTURES, describeWithFFmpeg, tmp } from "../helpers.ts";
 import { statSync } from "node:fs";
+
+const ffmpeg = createFFmpeg();
 
 describeWithFFmpeg("estimateSize E2E", () => {
   it("explicit bitrate estimate is within 50% of actual encoded size", async () => {
@@ -11,14 +12,14 @@ describeWithFFmpeg("estimateSize E2E", () => {
     const output = tmp("estimate-encoded.mp4");
 
     // Get estimate first
-    const estimate = await estimateSize({
+    const estimate = await ffmpeg.estimateSize({
       input: FIXTURES.videoShort,
       videoBitrate,
       audioBitrate,
     });
 
     // Encode with those bitrates
-    await compress(FIXTURES.videoShort, output, { quality: "economy" });
+    await ffmpeg.compress(FIXTURES.videoShort, output, { quality: "economy" });
     const actualBytes = statSync(output).size;
 
     // Estimate should be in the same order of magnitude (within 50x for a rough test)
@@ -29,7 +30,7 @@ describeWithFFmpeg("estimateSize E2E", () => {
   });
 
   it("returns appropriate confidence level for explicit bitrates", async () => {
-    const result = await estimateSize({
+    const result = await ffmpeg.estimateSize({
       input: FIXTURES.videoShort,
       videoBitrate: "2M",
       audioBitrate: "128k",
@@ -38,7 +39,7 @@ describeWithFFmpeg("estimateSize E2E", () => {
   });
 
   it("returns low confidence for CRF-based preset", async () => {
-    const result = await estimateSize({
+    const result = await ffmpeg.estimateSize({
       input: FIXTURES.videoShort,
       preset: "web_720p",
     });

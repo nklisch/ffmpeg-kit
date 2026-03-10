@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { estimateSize, formatBytes, parseBitrate } from "../../src/convenience/estimate.ts";
+import { defaultDeps } from "../../src/util/builder-helpers.ts";
 
 describe("parseBitrate", () => {
   it("parses megabit strings", () => {
@@ -44,7 +45,7 @@ describe("estimateSize calculation", () => {
   it("computes correct byte estimate with explicit bitrates", async () => {
     // 10 seconds at 5M video + 192k audio
     // bytes = (5_000_000 + 192_000) * 10 / 8 = 6_490_000
-    const result = await estimateSize({
+    const result = await estimateSize(defaultDeps, {
       input: "dummy",
       videoBitrate: "5M",
       audioBitrate: "192k",
@@ -56,7 +57,7 @@ describe("estimateSize calculation", () => {
   });
 
   it("returns high confidence for explicit bitrates", async () => {
-    const result = await estimateSize({
+    const result = await estimateSize(defaultDeps, {
       input: "dummy",
       videoBitrate: "2M",
       audioBitrate: "128k",

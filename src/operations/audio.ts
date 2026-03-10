@@ -1,13 +1,13 @@
 import { statSync } from "node:fs";
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { getAudioStream, getDuration } from "../core/probe.ts";
 import type { AudioCodec } from "../types/codecs.ts";
+import type { AudioStreamInfo } from "../types/probe.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { AudioInputConfig, DuckConfig, FadeCurve, NormalizeConfig } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { AudioResult, OperationResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import { buildAtempoChain } from "../util/audio-filters.ts";
-import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import { defaultDeps, missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
 
 // --- Internal State ---
 
@@ -493,7 +493,7 @@ function parseLoudnormJson(stderr: string): LoudnormMeasurement {
 
 // --- Factory ---
 
-export function audio(): AudioBuilder {
+export function audio(deps: BuilderDeps = defaultDeps): AudioBuilder {
   const state: AudioState = {
     additionalInputs: [],
     eqConfigs: [],
@@ -687,7 +687,7 @@ export function audio(): AudioBuilder {
           "-",
         ];
         // Use logLevel "info" so loudnorm JSON output reaches stderr
-        const pass1Result = await runFFmpeg(pass1Args, { ...options, logLevel: "info" });
+        const pass1Result = await deps.execute(pass1Args, { ...options, logLevel: "info" });
         const measurement = parseLoudnormJson(pass1Result.stderr);
 
         // Pass 2: linear correction
@@ -699,15 +699,14 @@ export function audio(): AudioBuilder {
 
         // biome-ignore lint/style/noNonNullAssertion: validated above
         pass2Args.push(state.outputPath!);
-        const pass2Result = await runFFmpeg(pass2Args, options);
+        const pass2Result = await deps.execute(pass2Args, options);
 
         // biome-ignore lint/style/noNonNullAssertion: validated above
         const outPath = state.outputPath!;
         const fileStat = statSync(outPath);
-        const [duration, audioStream] = await Promise.all([
-          getDuration(outPath),
-          getAudioStream(outPath),
-        ]);
+        const outProbe = await deps.probe(outPath);
+        const duration = outProbe.format.duration ?? 0;
+        const audioStream = outProbe.streams.find((s): s is AudioStreamInfo => s.type === "audio");
 
         // Parse loudness from pass 2 stderr
         const loudness =
@@ -728,7 +727,7 @@ export function audio(): AudioBuilder {
       // Use logLevel "info" so silencedetect filter output reaches stderr
       if (state.detectSilenceConfig !== undefined) {
         const args = buildSingleInputArgs(state);
-        const result = await runFFmpeg(args, { ...options, logLevel: "info" });
+        const result = await deps.execute(args, { ...options, logLevel: "info" });
         const silenceRanges = parseSilenceRanges(result.stderr);
         return {
           outputPath: "",
@@ -741,7 +740,8 @@ export function audio(): AudioBuilder {
       // Resolve fadeOut startAt from input duration if not set
       let fadeOutStart: number | undefined;
       if (state.fadeOutConfig !== undefined && state.fadeOutConfig.startAt === undefined) {
-        const duration = await getDuration(state.inputPath);
+        const inputProbe = await deps.probe(state.inputPath);
+        const duration = inputProbe.format.duration ?? 0;
         fadeOutStart = Math.max(0, duration - state.fadeOutConfig.duration);
       }
 
@@ -750,15 +750,14 @@ export function audio(): AudioBuilder {
         ? buildMultiInputArgs(state)
         : buildSingleInputArgs(state, fadeOutStart);
 
-      const result = await runFFmpeg(args, options);
+      const result = await deps.execute(args, options);
 
       // biome-ignore lint/style/noNonNullAssertion: validated above
       const outPath = state.outputPath!;
       const fileStat = statSync(outPath);
-      const [duration, audioStream] = await Promise.all([
-        getDuration(outPath),
-        getAudioStream(outPath),
-      ]);
+      const outProbe = await deps.probe(outPath);
+      const duration = outProbe.format.duration ?? 0;
+      const audioStream = outProbe.streams.find((s) => s.type === "audio");
 
       const loudness =
         state.normalizeConfig !== undefined && !state.normalizeConfig.twoPass

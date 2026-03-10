@@ -1,9 +1,11 @@
+import { join } from "node:path";
 import { statSync } from "node:fs";
-import { probe } from "../core/probe.ts";
+import { tmpdir } from "node:os";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult } from "../types/results.ts";
 import type { ProbeResult } from "../types/probe.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 
 export function missingFieldError(field: string): FFmpegError {
   return new FFmpegError({
@@ -51,9 +53,11 @@ export interface BaseProbeInfo {
   probeResult: ProbeResult;
 }
 
-export async function probeOutput(outputPath: string): Promise<BaseProbeInfo> {
+type ProbeFn = (path: string, opts?: { noCache?: boolean }) => Promise<ProbeResult>;
+
+export async function probeOutput(outputPath: string, probeFn: ProbeFn): Promise<BaseProbeInfo> {
   const fileStat = statSync(outputPath);
-  const probeResult = await probe(outputPath, { noCache: true });
+  const probeResult = await probeFn(outputPath, { noCache: true });
   const duration = probeResult.format.duration ?? 0;
   return { outputPath, sizeBytes: fileStat.size, duration, probeResult };
 }
@@ -65,3 +69,21 @@ export function resolveDimensions(
   if (!dims) return { w: autoValue, h: autoValue };
   return { w: dims.width ?? autoValue, h: dims.height ?? autoValue };
 }
+
+function notConfigured(name: string): never {
+  throw new FFmpegError({
+    code: FFmpegErrorCode.UNKNOWN,
+    message: `${name}() requires an SDK instance — use createFFmpeg()`,
+    stderr: "",
+    command: [],
+    exitCode: 0,
+  });
+}
+
+/** Default deps for builders used outside SDK (toArgs-only). execute/probe throw. */
+export const defaultDeps: BuilderDeps = {
+  execute: () => notConfigured("execute"),
+  probe: () => notConfigured("probe"),
+  tempDir: join(tmpdir(), "ffmpeg-kit"),
+  defaultHwAccel: "auto",
+};

@@ -1,9 +1,9 @@
 import { statSync } from "node:fs";
 import { extname } from "node:path";
-import { probe } from "../core/probe.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, PipelineResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import { createTempFiles } from "../util/tempfile.ts";
 
 /** Any builder that has input(), output(), and execute() */
@@ -32,7 +32,7 @@ export interface PipelineBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<PipelineResult>>;
 }
 
-export function pipeline(): PipelineBuilder {
+export function pipeline(deps: BuilderDeps): PipelineBuilder {
   const state: {
     steps: PipelineStep[];
     inputPath?: string;
@@ -71,7 +71,7 @@ export function pipeline(): PipelineBuilder {
     } else {
       const { files: tempFiles, cleanup } = createTempFiles(stepCount - 1, {
         suffix: outputExt,
-      });
+      }, deps.tempDir);
       try {
         for (let i = 0; i < stepCount; i++) {
           // biome-ignore lint/style/noNonNullAssertion: loop bounds guarantee these are defined
@@ -91,7 +91,7 @@ export function pipeline(): PipelineBuilder {
     }
 
     const fileStat = statSync(state.outputPath);
-    const probeResult = await probe(state.outputPath, { noCache: true });
+    const probeResult = await deps.probe(state.outputPath, { noCache: true });
     return {
       outputPath: state.outputPath,
       duration: probeResult.format.duration ?? 0,

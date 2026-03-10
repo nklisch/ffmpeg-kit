@@ -1,9 +1,9 @@
-import { getDuration } from "../core/probe.ts";
 import { getPreset } from "../encoding/presets.ts";
 import type { ExportPreset } from "../types/codecs.ts";
 import type { EstimateResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 
-interface EstimateOptions {
+export interface EstimateOptions {
   input: string;
   /** Use preset to determine bitrate */
   preset?: ExportPreset;
@@ -35,10 +35,16 @@ export function formatBytes(bytes: number): string {
   return `${bytes} B`;
 }
 
-export async function estimateSize(options: EstimateOptions): Promise<EstimateResult> {
+export async function estimateSize(deps: BuilderDeps, options: EstimateOptions): Promise<EstimateResult> {
   const { input, preset, videoBitrate, audioBitrate, duration: durationOverride } = options;
 
-  const duration = durationOverride ?? (await getDuration(input));
+  let duration: number;
+  if (durationOverride !== undefined) {
+    duration = durationOverride;
+  } else {
+    const probeResult = await deps.probe(input);
+    duration = probeResult.format.duration ?? 0;
+  }
 
   let videoBps: number | undefined;
   let audioBps: number | undefined;

@@ -1,5 +1,4 @@
 import { writeFileSync } from "node:fs";
-import { execute as runFFmpeg } from "../core/execute.ts";
 import {
   audioEncoderConfigToArgs,
   buildEncoderConfig,
@@ -21,7 +20,8 @@ import type {
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ExportResult, OperationResult } from "../types/results.ts";
-import { missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
+import { defaultDeps, missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
 import { createTempFile } from "../util/tempfile.ts";
 
 // --- Internal State ---
@@ -297,7 +297,7 @@ function buildArgs(
 
 // --- Factory ---
 
-export function exportVideo(): ExportBuilder {
+export function exportVideo(deps: BuilderDeps = defaultDeps): ExportBuilder {
   const state: ExportState = {};
 
   const builder: ExportBuilder = {
@@ -436,16 +436,16 @@ export function exportVideo(): ExportBuilder {
       // Prepare chapter file if needed
       let chapterTempFile: ReturnType<typeof createTempFile> | undefined;
       if (state.chaptersValue !== undefined && state.chaptersValue.length > 0) {
-        chapterTempFile = createTempFile({ suffix: ".txt", subdir: "export-chapters" });
+        chapterTempFile = createTempFile({ suffix: ".txt", subdir: "export-chapters" }, deps.tempDir);
         writeChapterFile(state.chaptersValue, chapterTempFile.path);
       }
 
       try {
         if (state.twoPassEnabled === true) {
-          const passLog = createTempFile({ subdir: "export-passlog" });
+          const passLog = createTempFile({ subdir: "export-passlog" }, deps.tempDir);
           try {
-            await runFFmpeg(buildArgs(state, 1, passLog.path, chapterTempFile?.path), options);
-            await runFFmpeg(buildArgs(state, 2, passLog.path, chapterTempFile?.path), options);
+            await deps.execute(buildArgs(state, 1, passLog.path, chapterTempFile?.path), options);
+            await deps.execute(buildArgs(state, 2, passLog.path, chapterTempFile?.path), options);
           } finally {
             // Clean up passlog files (FFmpeg creates .log and .log.mbtree)
             passLog.cleanup();
@@ -463,13 +463,13 @@ export function exportVideo(): ExportBuilder {
             }
           }
         } else {
-          await runFFmpeg(buildArgs(state, undefined, undefined, chapterTempFile?.path), options);
+          await deps.execute(buildArgs(state, undefined, undefined, chapterTempFile?.path), options);
         }
       } finally {
         chapterTempFile?.cleanup();
       }
 
-      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(outPath);
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(outPath, deps.probe);
       const videoStream = probeResult.streams.find((s) => s.type === "video");
       const audioStream = probeResult.streams.find((s) => s.type === "audio");
 

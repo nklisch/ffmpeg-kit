@@ -1,8 +1,8 @@
-import { probe } from "../core/probe.ts";
 import { exportVideo } from "../operations/export.ts";
 import type { HwAccelMode, PixelFormat } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, SmartTranscodeResult, TranscodeAction } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import { probeOutput } from "../util/builder-helpers.ts";
 import { parseBitrate } from "./estimate.ts";
 
@@ -16,7 +16,7 @@ interface SmartTranscodeTarget {
   maxBitrate?: string;
 }
 
-interface SmartTranscodeOptions {
+export interface SmartTranscodeOptions {
   input: string;
   output: string;
   target: SmartTranscodeTarget;
@@ -47,12 +47,13 @@ function codecMatches(streamCodec: string, targetCodec: string): boolean {
 }
 
 export async function smartTranscode(
+  deps: BuilderDeps,
   options: SmartTranscodeOptions,
   executeOptions?: ExecuteOptions,
 ): Promise<SmartTranscodeResult> {
   const { input, output, target, hwAccel } = options;
 
-  const probeResult = await probe(input);
+  const probeResult = await deps.probe(input);
   const videoStream = probeResult.streams.find((s) => s.type === "video");
   const audioStream = probeResult.streams.find((s) => s.type === "audio");
 
@@ -96,7 +97,7 @@ export async function smartTranscode(
   }
 
   // Build the export command
-  const builder = exportVideo().input(input);
+  const builder = exportVideo(deps).input(input);
 
   if (!needsVideoTranscode && !needsAudioTranscode) {
     builder.videoCodec("copy").audioCodec("copy");
@@ -145,7 +146,7 @@ export async function smartTranscode(
 
   await builder.output(output).execute(executeOptions);
 
-  const info = await probeOutput(output);
+  const info = await probeOutput(output, deps.probe);
   return {
     outputPath: info.outputPath,
     duration: info.duration,
@@ -155,11 +156,12 @@ export async function smartTranscode(
 }
 
 export async function trySmartTranscode(
+  deps: BuilderDeps,
   options: SmartTranscodeOptions,
   executeOptions?: ExecuteOptions,
 ): Promise<OperationResult<SmartTranscodeResult>> {
   try {
-    const data = await smartTranscode(options, executeOptions);
+    const data = await smartTranscode(deps, options, executeOptions);
     return { success: true, data };
   } catch (err) {
     const { FFmpegError } = await import("../types/errors.ts");

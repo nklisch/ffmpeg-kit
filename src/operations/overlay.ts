@@ -1,12 +1,13 @@
-import { execute as runFFmpeg } from "../core/execute.ts";
 import { enable, timeRange } from "../filters/helpers.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { BlendMode, OverlayAnchor, OverlayPosition } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, OverlayResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import {
   DEFAULT_AUDIO_CODEC_ARGS,
   DEFAULT_VIDEO_CODEC_ARGS,
+  defaultDeps,
   missingFieldError,
   probeOutput,
   wrapTryExecute,
@@ -261,7 +262,7 @@ function buildOverlayArgs(
 
 // --- Factory ---
 
-export function overlay(): OverlayBuilder {
+export function overlay(deps: BuilderDeps = defaultDeps): OverlayBuilder {
   const state: OverlayState = {
     overlays: [],
   };
@@ -318,8 +319,8 @@ export function overlay(): OverlayBuilder {
 
     async execute(options) {
       validateOverlayState(state);
-      await runFFmpeg(buildOverlayArgs(state), options);
-      const { outputPath, duration, sizeBytes } = await probeOutput(state.outputPath);
+      await deps.execute(buildOverlayArgs(state), options);
+      const { outputPath, duration, sizeBytes } = await probeOutput(state.outputPath, deps.probe);
       return { outputPath, duration, sizeBytes };
     },
 

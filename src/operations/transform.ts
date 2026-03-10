@@ -1,5 +1,3 @@
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { probe } from "../core/probe.ts";
 import type { HwAccelMode } from "../types/codecs.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type {
@@ -14,8 +12,9 @@ import type {
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { OperationResult, TransformResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import { buildAtempoChain } from "../util/audio-filters.ts";
-import { DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
+import { DEFAULT_VIDEO_CODEC_ARGS, defaultDeps, missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface TransformState {
@@ -409,7 +408,7 @@ export interface TransformBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<TransformResult>>;
 }
 
-export function transform(): TransformBuilder {
+export function transform(deps: BuilderDeps = defaultDeps): TransformBuilder {
   const state: TransformState = {};
 
   const builder: TransformBuilder = {
@@ -562,7 +561,7 @@ export function transform(): TransformBuilder {
           kenBurnsDimensions = { width: w, height: h };
         } else {
           // Probe input for dimensions
-          const inputProbe = await probe(state.inputPath);
+          const inputProbe = await deps.probe(state.inputPath);
           const videoStream = inputProbe.streams.find(
             (s): s is VideoStreamInfo => s.type === "video",
           );
@@ -577,7 +576,7 @@ export function transform(): TransformBuilder {
 
         // If explicitly setting scale dims, still check for image input
         if (!addLoop) {
-          const inputProbe = await probe(state.inputPath);
+          const inputProbe = await deps.probe(state.inputPath);
           if (inputProbe.format.duration < 0.1) {
             addLoop = true;
           }
@@ -585,9 +584,9 @@ export function transform(): TransformBuilder {
       }
 
       const args = buildArgs(state, resolved, kenBurnsDimensions, addLoop);
-      await runFFmpeg(args, options);
+      await deps.execute(args, options);
 
-      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(state.outputPath);
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(state.outputPath, deps.probe);
       const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
 
       return {

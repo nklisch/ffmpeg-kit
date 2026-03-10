@@ -2,8 +2,10 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmdirSyn
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeAll, beforeEach, expect, it } from "vitest";
-import { dash, hls } from "../../src/operations/streaming.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { describeWithFFmpeg, FIXTURES } from "../helpers.ts";
+
+const ffmpeg = createFFmpeg();
 
 beforeAll(() => {
   mkdirSync(join(tmpdir(), "ffmpeg-kit-test"), { recursive: true });
@@ -39,7 +41,7 @@ describeWithFFmpeg(
   () => {
     it("creates HLS output with mpegts segments", async () => {
       const output = join(testDir, "output.m3u8");
-      const result = await hls()
+      const result = await ffmpeg.hls()
         .input(FIXTURES.videoShort)
         .segmentDuration(1)
         .output(output)
@@ -56,7 +58,7 @@ describeWithFFmpeg(
 
     it("creates HLS output with fmp4 segments", async () => {
       const output = join(testDir, "output.m3u8");
-      const result = await hls()
+      const result = await ffmpeg.hls()
         .input(FIXTURES.videoShort)
         .segmentType("fmp4")
         .segmentDuration(1)
@@ -73,7 +75,7 @@ describeWithFFmpeg(
 
     it("respects segment duration and produces valid HLS output", async () => {
       const output = join(testDir, "output.m3u8");
-      const result = await hls()
+      const result = await ffmpeg.hls()
         .input(FIXTURES.videoH264)
         .segmentDuration(2)
         .output(output)
@@ -89,7 +91,7 @@ describeWithFFmpeg(
 
     it("creates HLS with VOD playlist type", async () => {
       const output = join(testDir, "output.m3u8");
-      await hls().input(FIXTURES.videoShort).playlistType("vod").output(output).execute();
+      await ffmpeg.hls().input(FIXTURES.videoShort).playlistType("vod").output(output).execute();
 
       expect(existsSync(output)).toBe(true);
       const content = readFileSync(output, "utf-8");
@@ -105,7 +107,7 @@ describeWithFFmpeg(
   () => {
     it("creates DASH output", async () => {
       const output = join(testDir, "output.mpd");
-      const result = await dash().input(FIXTURES.videoShort).output(output).execute();
+      const result = await ffmpeg.dash().input(FIXTURES.videoShort).output(output).execute();
 
       expect(existsSync(output)).toBe(true);
       expect(result.outputPath).toBe(output);
@@ -116,7 +118,7 @@ describeWithFFmpeg(
 
     it("respects segment duration", async () => {
       const output = join(testDir, "output.mpd");
-      const result = await dash()
+      const result = await ffmpeg.dash()
         .input(FIXTURES.videoShort)
         .segmentDuration(2)
         .output(output)

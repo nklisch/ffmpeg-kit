@@ -1,9 +1,10 @@
 import { copyFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
-import { probe } from "../core/probe.ts";
 import { exportVideo } from "../operations/export.ts";
 import type { HwAccelMode, PixelFormat } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
+import type { ProbeResult } from "../types/probe.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 
 interface NormalizeTarget {
   width: number;
@@ -14,7 +15,7 @@ interface NormalizeTarget {
   audioChannels?: number;
 }
 
-interface NormalizeMediaOptions {
+export interface NormalizeMediaOptions {
   inputs: string[];
   outputDir: string;
   target: NormalizeTarget;
@@ -23,7 +24,7 @@ interface NormalizeMediaOptions {
   hwAccel?: HwAccelMode;
 }
 
-interface NormalizeMediaResult {
+export interface NormalizeMediaResult {
   outputs: Array<{
     inputPath: string;
     outputPath: string;
@@ -32,10 +33,7 @@ interface NormalizeMediaResult {
   }>;
 }
 
-function inputMatchesTarget(
-  probeResult: Awaited<ReturnType<typeof probe>>,
-  target: NormalizeTarget,
-): boolean {
+function inputMatchesTarget(probeResult: ProbeResult, target: NormalizeTarget): boolean {
   const video = probeResult.streams.find((s) => s.type === "video");
   if (!video || video.type !== "video") return false;
 
@@ -60,6 +58,7 @@ function inputMatchesTarget(
 }
 
 export async function normalizeMedia(
+  deps: BuilderDeps,
   options: NormalizeMediaOptions,
   executeOptions?: ExecuteOptions,
 ): Promise<NormalizeMediaResult> {
@@ -69,7 +68,7 @@ export async function normalizeMedia(
 
   for (const inputPath of inputs) {
     const outputPath = join(outputDir, basename(inputPath));
-    const probeResult = await probe(inputPath);
+    const probeResult = await deps.probe(inputPath);
 
     if (skipIfMatching && inputMatchesTarget(probeResult, target)) {
       copyFileSync(inputPath, outputPath);
@@ -83,7 +82,7 @@ export async function normalizeMedia(
       vfParts.push(`format=${target.pixelFormat}`);
     }
 
-    const builder = exportVideo()
+    const builder = exportVideo(deps)
       .input(inputPath)
       .outputArgs(["-vf", vfParts.join(",")]);
     if (target.audioSampleRate !== undefined) {

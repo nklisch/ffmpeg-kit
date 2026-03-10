@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { batch } from "../../src/convenience/batch.ts";
-import { compress } from "../../src/convenience/quick.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { FIXTURES, describeWithFFmpeg, expectFileExists, tmp } from "../helpers.ts";
+
+const ffmpeg = createFFmpeg();
 
 describeWithFFmpeg("batch E2E", () => {
   it("processes 3 files with concurrency 2", async () => {
@@ -9,14 +10,14 @@ describeWithFFmpeg("batch E2E", () => {
     const outputs = inputs.map((_, i) => tmp(`batch-out-${i}.mp4`));
     let idx = 0;
 
-    const result = await batch({
+    const result = await ffmpeg.batch({
       inputs,
       concurrency: 2,
       operation: () => {
         const outPath = outputs[idx++]!;
         return {
           input: (path: string) => ({
-            execute: () => compress(path, outPath, { quality: "economy" }),
+            execute: () => ffmpeg.compress(path, outPath, { quality: "economy" }),
           }),
         };
       },
@@ -34,14 +35,14 @@ describeWithFFmpeg("batch E2E", () => {
   it("individual failure does not stop the batch", async () => {
     const onError = vi.fn();
     const inputs = ["nonexistent.mp4", FIXTURES.videoShort, "alsonotfound.mp4"];
-    const result = await batch({
+    const result = await ffmpeg.batch({
       inputs,
       onItemError: onError,
       operation: (input) => {
         const outPath = tmp(`batch-fail-${Date.now()}.mp4`);
         return {
           input: (path: string) => ({
-            execute: () => compress(path, outPath),
+            execute: () => ffmpeg.compress(path, outPath),
           }),
         };
       },
@@ -60,14 +61,14 @@ describeWithFFmpeg("batch E2E", () => {
     let idx = 0;
     const outputs = inputs.map((_, i) => tmp(`batch-complete-${i}.mp4`));
 
-    await batch({
+    await ffmpeg.batch({
       inputs,
       onItemComplete: onComplete,
       operation: () => {
         const outPath = outputs[idx++]!;
         return {
           input: (path: string) => ({
-            execute: () => compress(path, outPath, { quality: "economy" }),
+            execute: () => ffmpeg.compress(path, outPath, { quality: "economy" }),
           }),
         };
       },

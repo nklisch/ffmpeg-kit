@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { createFFmpeg } from "../../src/sdk.ts";
 import {
   describeWithFFmpeg,
   expectDurationClose,
@@ -8,11 +9,12 @@ import {
   tmp,
 } from "../helpers.ts";
 
+const ffmpeg = createFFmpeg();
+
 describeWithFFmpeg("text()", () => {
   it("renders basic drawtext", async () => {
-    const { text } = await import("../../src/operations/text.ts");
     const out = tmp("text-basic.mp4");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input(FIXTURES.videoShort)
       .addText({
         text: "Hello World",
@@ -31,9 +33,8 @@ describeWithFFmpeg("text()", () => {
   });
 
   it("renders text with box background", async () => {
-    const { text } = await import("../../src/operations/text.ts");
     const out = tmp("text-box.mp4");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input(FIXTURES.videoShort)
       .addText({
         text: "Caption",
@@ -54,9 +55,8 @@ describeWithFFmpeg("text()", () => {
   });
 
   it("renders text with time range", async () => {
-    const { text } = await import("../../src/operations/text.ts");
     const out = tmp("text-timerange.mp4");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input(FIXTURES.videoShort)
       .addText({
         text: "Timed Text",
@@ -73,9 +73,8 @@ describeWithFFmpeg("text()", () => {
   });
 
   it("renders multiple text elements", async () => {
-    const { text } = await import("../../src/operations/text.ts");
     const out = tmp("text-multiple.mp4");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input(FIXTURES.videoShort)
       .addText({
         text: "Top Left",
@@ -95,9 +94,8 @@ describeWithFFmpeg("text()", () => {
   });
 
   it("renders scrolling text", async () => {
-    const { text } = await import("../../src/operations/text.ts");
     const out = tmp("text-scroll.mp4");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input(FIXTURES.videoShort)
       .scroll({
         text: "Scrolling news ticker text here",
@@ -113,9 +111,8 @@ describeWithFFmpeg("text()", () => {
   });
 
   it("renders counter", async () => {
-    const { text } = await import("../../src/operations/text.ts");
     const out = tmp("text-counter.mp4");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input(FIXTURES.videoShort)
       .counter({
         start: 0,
@@ -131,9 +128,8 @@ describeWithFFmpeg("text()", () => {
   });
 
   it("tryExecute() returns success result", async () => {
-    const { text } = await import("../../src/operations/text.ts");
     const out = tmp("text-try.mp4");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input(FIXTURES.videoShort)
       .addText({ text: "Try", style: {} })
       .output(out)
@@ -142,8 +138,7 @@ describeWithFFmpeg("text()", () => {
   });
 
   it("tryExecute() returns failure on invalid input", async () => {
-    const { text } = await import("../../src/operations/text.ts");
-    const result = await text()
+    const result = await ffmpeg.text()
       .input("nonexistent.mp4")
       .addText({ text: "Hi", style: {} })
       .output(tmp("text-fail.mp4"))

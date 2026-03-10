@@ -1,15 +1,17 @@
 import { existsSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { detectSilence, splitOnSilence, trimSilence } from "../../src/convenience/silence.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { FIXTURES, describeWithFFmpeg, expectFileExists, tmp } from "../helpers.ts";
 import { getDuration } from "../../src/core/probe.ts";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
+const ffmpeg = createFFmpeg();
+
 describeWithFFmpeg("detectSilence", () => {
   it("finds silence ranges in silent audio fixture", async () => {
-    const ranges = await detectSilence(FIXTURES.audioSilence, { threshold: -30 });
+    const ranges = await ffmpeg.detectSilence(FIXTURES.audioSilence, { threshold: -30 });
     expect(ranges.length).toBeGreaterThan(0);
     for (const range of ranges) {
       expect(range.start).toBeGreaterThanOrEqual(0);
@@ -24,7 +26,7 @@ describeWithFFmpeg("trimSilence", () => {
     const inputDuration = await getDuration(FIXTURES.audioSpeech);
     const output = tmp("trimmed-silence.wav");
 
-    const result = await trimSilence({
+    const result = await ffmpeg.trimSilence({
       input: FIXTURES.audioSpeech,
       output,
       threshold: -40,
@@ -39,8 +41,8 @@ describeWithFFmpeg("trimSilence", () => {
     const output1 = tmp("trim-pad0.wav");
     const output2 = tmp("trim-pad1.wav");
 
-    await trimSilence({ input: FIXTURES.audioSpeech, output: output1, threshold: -40, padding: 0 });
-    await trimSilence({ input: FIXTURES.audioSpeech, output: output2, threshold: -40, padding: 0.5 });
+    await ffmpeg.trimSilence({ input: FIXTURES.audioSpeech, output: output1, threshold: -40, padding: 0 });
+    await ffmpeg.trimSilence({ input: FIXTURES.audioSpeech, output: output2, threshold: -40, padding: 0.5 });
 
     expectFileExists(output1);
     expectFileExists(output2);
@@ -53,7 +55,7 @@ describeWithFFmpeg("splitOnSilence", () => {
     const outDir = join(tmpdir(), `split-silence-${Date.now()}`);
     mkdirSync(outDir, { recursive: true });
 
-    const segments = await splitOnSilence({
+    const segments = await ffmpeg.splitOnSilence({
       input: FIXTURES.audioSpeech,
       outputDir: outDir,
       threshold: -40,
@@ -75,7 +77,7 @@ describeWithFFmpeg("splitOnSilence", () => {
     mkdirSync(outDir, { recursive: true });
     const minSegment = 1.0;
 
-    const segments = await splitOnSilence({
+    const segments = await ffmpeg.splitOnSilence({
       input: FIXTURES.audioSpeech,
       outputDir: outDir,
       threshold: -40,

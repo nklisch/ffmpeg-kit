@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { createFFmpeg } from "../../src/sdk.ts";
 import {
   describeWithFFmpeg,
   expectDurationClose,
@@ -8,11 +9,12 @@ import {
   tmp,
 } from "../helpers.ts";
 
+const ffmpeg = createFFmpeg();
+
 describeWithFFmpeg("overlay()", () => {
   it("overlays image on video", async () => {
-    const { overlay } = await import("../../src/operations/overlay.ts");
     const out = tmp("overlay-image.mp4");
-    const result = await overlay()
+    const result = await ffmpeg.overlay()
       .base(FIXTURES.videoShort)
       .addOverlay({ input: FIXTURES.imageSmall, anchor: "top-left" })
       .output(out)
@@ -25,9 +27,8 @@ describeWithFFmpeg("overlay()", () => {
   });
 
   it("applies overlay with opacity", async () => {
-    const { overlay } = await import("../../src/operations/overlay.ts");
     const out = tmp("overlay-opacity.mp4");
-    const result = await overlay()
+    const result = await ffmpeg.overlay()
       .base(FIXTURES.videoShort)
       .addOverlay({ input: FIXTURES.imageSmall, anchor: "center", opacity: 0.5 })
       .output(out)
@@ -38,9 +39,8 @@ describeWithFFmpeg("overlay()", () => {
   });
 
   it("applies overlay with time range", async () => {
-    const { overlay } = await import("../../src/operations/overlay.ts");
     const out = tmp("overlay-timerange.mp4");
-    const result = await overlay()
+    const result = await ffmpeg.overlay()
       .base(FIXTURES.videoShort)
       .addOverlay({ input: FIXTURES.imageSmall, anchor: "top-right", startTime: 0.5, endTime: 1.5 })
       .output(out)
@@ -51,9 +51,8 @@ describeWithFFmpeg("overlay()", () => {
   });
 
   it("creates picture-in-picture", async () => {
-    const { overlay } = await import("../../src/operations/overlay.ts");
     const out = tmp("overlay-pip.mp4");
-    const result = await overlay()
+    const result = await ffmpeg.overlay()
       .base(FIXTURES.videoShort)
       .pip({ input: FIXTURES.videoShort, position: "bottom-right", scale: 0.3, margin: 10 })
       .output(out)
@@ -67,9 +66,8 @@ describeWithFFmpeg("overlay()", () => {
   });
 
   it("applies watermark", async () => {
-    const { overlay } = await import("../../src/operations/overlay.ts");
     const out = tmp("overlay-watermark.mp4");
-    const result = await overlay()
+    const result = await ffmpeg.overlay()
       .base(FIXTURES.videoShort)
       .watermark({ input: FIXTURES.imageSmall, position: "bottom-right", opacity: 0.4 })
       .output(out)
@@ -80,9 +78,8 @@ describeWithFFmpeg("overlay()", () => {
   });
 
   it("chains multiple overlays", async () => {
-    const { overlay } = await import("../../src/operations/overlay.ts");
     const out = tmp("overlay-multiple.mp4");
-    const result = await overlay()
+    const result = await ffmpeg.overlay()
       .base(FIXTURES.videoShort)
       .addOverlay({ input: FIXTURES.imageSmall, anchor: "top-left" })
       .addOverlay({ input: FIXTURES.imageSmall, anchor: "bottom-right", opacity: 0.7 })
@@ -94,9 +91,8 @@ describeWithFFmpeg("overlay()", () => {
   });
 
   it("tryExecute() returns success result", async () => {
-    const { overlay } = await import("../../src/operations/overlay.ts");
     const out = tmp("overlay-try.mp4");
-    const result = await overlay()
+    const result = await ffmpeg.overlay()
       .base(FIXTURES.videoShort)
       .addOverlay({ input: FIXTURES.imageSmall })
       .output(out)

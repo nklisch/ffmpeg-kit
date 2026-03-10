@@ -2,8 +2,10 @@ import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, expect, it } from "vitest";
-import { image } from "../../src/operations/image.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { describeWithFFmpeg, expectFileExists, FIXTURES, probeOutput, tmp } from "../helpers.ts";
+
+const ffmpeg = createFFmpeg();
 
 beforeAll(() => {
   mkdirSync(join(tmpdir(), "ffmpeg-kit-test"), { recursive: true });
@@ -14,7 +16,7 @@ describeWithFFmpeg(
   () => {
     it("converts image format (jpg → png)", async () => {
       const output = tmp("image-convert.png");
-      const result = await image()
+      const result = await ffmpeg.image()
         .input(FIXTURES.image1080p)
         .convert("png")
         .output(output)
@@ -29,7 +31,7 @@ describeWithFFmpeg(
 
     it("converts image format (jpg → webp)", async () => {
       const output = tmp("image-convert.webp");
-      await image().input(FIXTURES.image1080p).convert("webp").output(output).execute();
+      await ffmpeg.image().input(FIXTURES.image1080p).convert("webp").output(output).execute();
 
       expectFileExists(output);
       const probeResult = await probeOutput(output);
@@ -39,7 +41,7 @@ describeWithFFmpeg(
 
     it("resizes image to specified width", async () => {
       const output = tmp("image-resize.png");
-      const result = await image()
+      const result = await ffmpeg.image()
         .input(FIXTURES.image1080p)
         .resize({ width: 640 })
         .output(output)
@@ -53,7 +55,7 @@ describeWithFFmpeg(
 
     it("creates video from still image", async () => {
       const output = tmp("image-to-video.mp4");
-      const result = await image()
+      const result = await ffmpeg.image()
         .input(FIXTURES.image1080p)
         .toVideo({ duration: 3, fps: 30 })
         .output(output)
@@ -71,7 +73,7 @@ describeWithFFmpeg(
 
     it("generates test pattern video", async () => {
       const output = tmp("image-testpattern.mp4");
-      const result = await image()
+      const result = await ffmpeg.image()
         .testPattern({ type: "testsrc2", width: 640, height: 480, duration: 2 })
         .output(output)
         .execute();
@@ -85,7 +87,7 @@ describeWithFFmpeg(
 
     it("generates solid color video", async () => {
       const output = tmp("image-solidcolor.mp4");
-      const result = await image()
+      const result = await ffmpeg.image()
         .solidColor({ color: "blue", width: 320, height: 240, duration: 1 })
         .output(output)
         .execute();
@@ -97,7 +99,7 @@ describeWithFFmpeg(
 
     it("generates silent audio", async () => {
       const output = tmp("image-silent.aac");
-      const result = await image()
+      const result = await ffmpeg.image()
         .silentAudio({ duration: 2, sampleRate: 48000 })
         .output(output)
         .execute();
@@ -112,7 +114,7 @@ describeWithFFmpeg(
 
     it("resize and convert compose correctly", async () => {
       const output = tmp("image-resize-convert.webp");
-      const result = await image()
+      const result = await ffmpeg.image()
         .input(FIXTURES.image1080p)
         .resize({ width: 640 })
         .convert("webp")
@@ -128,7 +130,7 @@ describeWithFFmpeg(
 
     it("tryExecute() returns success result", async () => {
       const output = tmp("image-try-success.png");
-      const result = await image()
+      const result = await ffmpeg.image()
         .input(FIXTURES.image1080p)
         .convert("png")
         .output(output)

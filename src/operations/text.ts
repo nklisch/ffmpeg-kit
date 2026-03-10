@@ -1,13 +1,13 @@
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { getDuration } from "../core/probe.ts";
 import { escapeDrawtext } from "../core/args.ts";
 import { enable, timeRange } from "../filters/helpers.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { OverlayAnchor } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, TextResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import {
   DEFAULT_VIDEO_CODEC_ARGS,
+  defaultDeps,
   missingFieldError,
   probeOutput,
   wrapTryExecute,
@@ -288,7 +288,7 @@ function buildArgs(
 
 // --- Factory ---
 
-export function text(): TextBuilder {
+export function text(deps: BuilderDeps = defaultDeps): TextBuilder {
   const state: TextState = {
     textConfigs: [],
   };
@@ -329,11 +329,12 @@ export function text(): TextBuilder {
 
       let resolvedDuration: number | undefined;
       if (state.counterConfig !== undefined) {
-        resolvedDuration = await getDuration(state.inputPath);
+        const inputProbe = await deps.probe(state.inputPath);
+        resolvedDuration = inputProbe.format.duration ?? 0;
       }
 
-      await runFFmpeg(buildArgs(state, resolvedDuration), options);
-      const { outputPath, duration, sizeBytes } = await probeOutput(state.outputPath);
+      await deps.execute(buildArgs(state, resolvedDuration), options);
+      const { outputPath, duration, sizeBytes } = await probeOutput(state.outputPath, deps.probe);
       return { outputPath, duration, sizeBytes };
     },
 

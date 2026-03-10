@@ -2,8 +2,10 @@ import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, expect, it } from "vitest";
-import { gif } from "../../src/operations/gif.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { describeWithFFmpeg, expectFileExists, FIXTURES, probeOutput, tmp } from "../helpers.ts";
+
+const ffmpeg = createFFmpeg();
 
 beforeAll(() => {
   mkdirSync(join(tmpdir(), "ffmpeg-kit-test"), { recursive: true });
@@ -14,7 +16,7 @@ describeWithFFmpeg(
   () => {
     it("creates basic GIF from video", async () => {
       const output = tmp("gif-basic.gif");
-      const result = await gif()
+      const result = await ffmpeg.gif()
         .input(FIXTURES.videoShort)
         .fps(10)
         .size({ width: 320 })
@@ -30,7 +32,7 @@ describeWithFFmpeg(
 
     it("creates GIF with palette optimization", async () => {
       const output = tmp("gif-optimized.gif");
-      const result = await gif()
+      const result = await ffmpeg.gif()
         .input(FIXTURES.videoShort)
         .fps(10)
         .size({ width: 320 })
@@ -44,7 +46,7 @@ describeWithFFmpeg(
 
     it("respects FPS setting", async () => {
       const output = tmp("gif-fps5.gif");
-      const result = await gif().input(FIXTURES.videoShort).fps(5).output(output).execute();
+      const result = await ffmpeg.gif().input(FIXTURES.videoShort).fps(5).output(output).execute();
 
       expectFileExists(output, 1000);
       const probeResult = await probeOutput(output);
@@ -56,7 +58,7 @@ describeWithFFmpeg(
 
     it("respects trim and duration", async () => {
       const output = tmp("gif-trimmed.gif");
-      const result = await gif()
+      const result = await ffmpeg.gif()
         .input(FIXTURES.videoH264)
         .trimStart(1)
         .duration(2)
@@ -71,7 +73,7 @@ describeWithFFmpeg(
 
     it("supports loop control", async () => {
       const output = tmp("gif-loop1.gif");
-      const result = await gif()
+      const result = await ffmpeg.gif()
         .input(FIXTURES.videoShort)
         .fps(10)
         .loop(1)
@@ -84,7 +86,7 @@ describeWithFFmpeg(
 
     it("tryExecute() returns success result", async () => {
       const output = tmp("gif-try-success.gif");
-      const result = await gif().input(FIXTURES.videoShort).fps(10).output(output).tryExecute();
+      const result = await ffmpeg.gif().input(FIXTURES.videoShort).fps(10).output(output).tryExecute();
 
       expect(result.success).toBe(true);
       if (result.success) {

@@ -1,13 +1,14 @@
 import { statSync } from "node:fs";
 import { extname } from "node:path";
 import { escapeSubtitlePath } from "../core/args.ts";
-import { execute as runFFmpeg } from "../core/execute.ts";
 import type { SubtitleFormat } from "../types/codecs.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, SubtitleResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import {
   DEFAULT_VIDEO_CODEC_ARGS,
+  defaultDeps,
   missingFieldError,
   wrapTryExecute,
 } from "../util/builder-helpers.ts";
@@ -180,7 +181,7 @@ export interface SubtitleBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<SubtitleResult>>;
 }
 
-export function subtitle(): SubtitleBuilder {
+export function subtitle(deps: BuilderDeps = defaultDeps): SubtitleBuilder {
   const state: SubtitleState = {};
 
   const builder: SubtitleBuilder = {
@@ -221,7 +222,7 @@ export function subtitle(): SubtitleBuilder {
     async execute(options) {
       validateSubtitleState(state);
       const args = buildArgs(state);
-      await runFFmpeg(args, options);
+      await deps.execute(args, options);
       const stat = statSync(state.outputPath);
       return {
         outputPath: state.outputPath,

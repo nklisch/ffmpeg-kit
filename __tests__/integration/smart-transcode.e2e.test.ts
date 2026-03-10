@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { smartTranscode } from "../../src/convenience/smart.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { FIXTURES, describeWithFFmpeg, expectFileExists, tmp } from "../helpers.ts";
 import { probe } from "../../src/core/probe.ts";
+
+const ffmpeg = createFFmpeg();
 
 describeWithFFmpeg("smartTranscode", () => {
   it("copies when input already matches target", async () => {
@@ -11,7 +13,7 @@ describeWithFFmpeg("smartTranscode", () => {
     expect(video).toBeDefined();
 
     const output = tmp("smart-copy.mp4");
-    const result = await smartTranscode({
+    const result = await ffmpeg.smartTranscode({
       input: FIXTURES.videoH264,
       output,
       target: {
@@ -27,7 +29,7 @@ describeWithFFmpeg("smartTranscode", () => {
 
   it("re-encodes video when dimensions exceed max", async () => {
     const output = tmp("smart-downscale.mp4");
-    const result = await smartTranscode({
+    const result = await ffmpeg.smartTranscode({
       input: FIXTURES.videoH264,
       output,
       target: {
@@ -44,7 +46,7 @@ describeWithFFmpeg("smartTranscode", () => {
 
   it("re-encodes audio when codec does not match", async () => {
     const output = tmp("smart-audio.mp4");
-    const result = await smartTranscode({
+    const result = await ffmpeg.smartTranscode({
       input: FIXTURES.videoH264,
       output,
       target: {

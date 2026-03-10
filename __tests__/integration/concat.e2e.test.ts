@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { concat } from "../../src/operations/concat.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { probe } from "../../src/core/probe.ts";
 import {
   FIXTURES,
@@ -10,12 +10,14 @@ import {
   tmp,
 } from "../helpers.ts";
 
+const ffmpeg = createFFmpeg();
+
 describeWithFFmpeg("concat()", () => {
   // --- Simple concat (demuxer) ---
 
   it("concatenates 2 clips without transitions (demuxer)", async () => {
     const out = tmp("concat-demuxer.mp4");
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip(FIXTURES.videoShort)
       .addClip(FIXTURES.videoShort)
       .output(out)
@@ -32,7 +34,7 @@ describeWithFFmpeg("concat()", () => {
 
   it("concatenates with crossfade transition", async () => {
     const out = tmp("concat-dissolve.mp4");
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip(FIXTURES.videoShort)
       .transition({ type: "dissolve", duration: 0.5 })
       .addClip(FIXTURES.videoShort)
@@ -49,7 +51,7 @@ describeWithFFmpeg("concat()", () => {
 
   it("concatenates with fadeblack transition", async () => {
     const out = tmp("concat-fadeblack.mp4");
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip(FIXTURES.videoShort)
       .transition({ type: "fadeblack", duration: 0.5 })
       .addClip(FIXTURES.videoShort)
@@ -64,7 +66,7 @@ describeWithFFmpeg("concat()", () => {
 
   it("concatenates clips from different resolutions with normalizeResolution", async () => {
     const out = tmp("concat-normalize.mp4");
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip(FIXTURES.videoH264)
       .addClip(FIXTURES.videoShort)
       .normalizeResolution(640, 360)
@@ -83,7 +85,7 @@ describeWithFFmpeg("concat()", () => {
     "concatenates 5 clips",
     async () => {
       const out = tmp("concat-5clips.mp4");
-      const result = await concat()
+      const result = await ffmpeg.concat()
         .addClip(FIXTURES.videoShort)
         .addClip(FIXTURES.videoShort)
         .addClip(FIXTURES.videoShort)
@@ -103,7 +105,7 @@ describeWithFFmpeg("concat()", () => {
 
   it("concatenates with per-clip trimming", async () => {
     const out = tmp("concat-trim.mp4");
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip({ path: FIXTURES.videoShort, trimStart: 0.5, duration: 1 })
       .addClip({ path: FIXTURES.videoShort, trimStart: 0, duration: 1 })
       .output(out)
@@ -117,7 +119,7 @@ describeWithFFmpeg("concat()", () => {
 
   it("fills silence for clips without audio", async () => {
     const out = tmp("concat-fill-silence.mp4");
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip(FIXTURES.videoNoAudio)
       .addClip(FIXTURES.videoShort)
       .fillSilence()
@@ -133,7 +135,7 @@ describeWithFFmpeg("concat()", () => {
 
   it("applies defaultTransition to all junctions", async () => {
     const out = tmp("concat-default-trans.mp4");
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip(FIXTURES.videoShort)
       .addClip(FIXTURES.videoShort)
       .defaultTransition({ type: "fade", duration: 0.5 })
@@ -147,7 +149,7 @@ describeWithFFmpeg("concat()", () => {
   // --- tryExecute ---
 
   it("tryExecute returns failure for nonexistent clip", async () => {
-    const result = await concat()
+    const result = await ffmpeg.concat()
       .addClip("nonexistent-a.mp4")
       .addClip("nonexistent-b.mp4")
       .output(tmp("concat-fail.mp4"))

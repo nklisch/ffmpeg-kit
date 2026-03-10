@@ -1,11 +1,11 @@
 import { readdirSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
-import { execute as runFFmpeg } from "../core/execute.ts";
 import type { AudioCodec, VideoCodec } from "../types/codecs.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, StreamResult } from "../types/results.ts";
-import { missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
+import { defaultDeps, missingFieldError, wrapTryExecute } from "../util/builder-helpers.ts";
 
 // --- HLS Types ---
 
@@ -183,7 +183,7 @@ export interface HlsBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<StreamResult>>;
 }
 
-export function hls(): HlsBuilder {
+export function hls(deps: BuilderDeps = defaultDeps): HlsBuilder {
   const state: HlsState = {};
 
   const builder: HlsBuilder = {
@@ -266,7 +266,7 @@ export function hls(): HlsBuilder {
     async execute(options) {
       validateStreamingState(state);
       const args = buildHlsArgs(state);
-      await runFFmpeg(args, options);
+      await deps.execute(args, options);
       const segments = collectSegments(state.outputPath);
       return {
         outputPath: state.outputPath,
@@ -361,7 +361,7 @@ export interface DashBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<StreamResult>>;
 }
 
-export function dash(): DashBuilder {
+export function dash(deps: BuilderDeps = defaultDeps): DashBuilder {
   const state: DashState = {};
 
   const builder: DashBuilder = {
@@ -418,7 +418,7 @@ export function dash(): DashBuilder {
     async execute(options) {
       validateStreamingState(state);
       const args = buildDashArgs(state);
-      await runFFmpeg(args, options);
+      await deps.execute(args, options);
       const segments = collectSegments(state.outputPath);
       return {
         outputPath: state.outputPath,

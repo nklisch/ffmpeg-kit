@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { waveform } from "../../src/convenience/waveform.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { FIXTURES, describeWithFFmpeg } from "../helpers.ts";
 import { getDuration } from "../../src/core/probe.ts";
+
+const ffmpeg = createFFmpeg();
 
 describeWithFFmpeg("waveform", () => {
   it("returns Float32Array with approximately correct sample count", async () => {
     const samplesPerSecond = 10;
-    const result = await waveform({
+    const result = await ffmpeg.waveform({
       input: FIXTURES.audioSpeech,
       samplesPerSecond,
     });
@@ -20,7 +22,7 @@ describeWithFFmpeg("waveform", () => {
   });
 
   it("values are in valid range for peaks mode", async () => {
-    const result = await waveform({
+    const result = await ffmpeg.waveform({
       input: FIXTURES.audioSpeech,
       samplesPerSecond: 10,
       format: "peaks",
@@ -35,7 +37,7 @@ describeWithFFmpeg("waveform", () => {
 
   it("returns correct duration matching input", async () => {
     const expectedDuration = await getDuration(FIXTURES.audioSpeech);
-    const result = await waveform({
+    const result = await ffmpeg.waveform({
       input: FIXTURES.audioSpeech,
       samplesPerSecond: 10,
     });
@@ -44,7 +46,7 @@ describeWithFFmpeg("waveform", () => {
   });
 
   it("mono channel mode produces single-channel data", async () => {
-    const result = await waveform({
+    const result = await ffmpeg.waveform({
       input: FIXTURES.audioSpeech,
       samplesPerSecond: 10,
       channels: "mono",

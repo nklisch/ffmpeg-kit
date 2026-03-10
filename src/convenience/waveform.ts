@@ -1,11 +1,10 @@
 import { readFileSync } from "node:fs";
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { getDuration } from "../core/probe.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { WaveformResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import { createTempFile } from "../util/tempfile.ts";
 
-interface WaveformOptions {
+export interface WaveformOptions {
   input: string;
   /** Samples per second (e.g., 30 for video fps match) */
   samplesPerSecond: number;
@@ -16,13 +15,15 @@ interface WaveformOptions {
 }
 
 export async function waveform(
+  deps: BuilderDeps,
   options: WaveformOptions,
   executeOptions?: ExecuteOptions,
 ): Promise<WaveformResult> {
   const { input, samplesPerSecond, channels = "mono", format = "peaks" } = options;
 
-  const duration = await getDuration(input);
-  const tempFile = createTempFile({ suffix: ".raw" });
+  const probeResult = await deps.probe(input);
+  const duration = probeResult.format.duration ?? 0;
+  const tempFile = createTempFile({ suffix: ".raw" }, deps.tempDir);
 
   try {
     const channelCount = channels === "stereo" ? 2 : 1;
@@ -42,7 +43,7 @@ export async function waveform(
       tempFile.path,
     ];
 
-    await runFFmpeg(args, executeOptions);
+    await deps.execute(args, executeOptions);
 
     const buffer = readFileSync(tempFile.path);
     const floatArray = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);

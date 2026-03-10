@@ -1,14 +1,13 @@
-import { unlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { getAudioStream, getDuration } from "../core/probe.ts";
 import type { HwAccelMode } from "../types/codecs.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ClipConfig, TransitionConfig } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
+import type { AudioStreamInfo } from "../types/probe.ts";
 import type { ConcatResult, OperationResult } from "../types/results.ts";
-import { DEFAULT_AUDIO_CODEC_ARGS, DEFAULT_VIDEO_CODEC_ARGS, missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
+import { DEFAULT_AUDIO_CODEC_ARGS, DEFAULT_VIDEO_CODEC_ARGS, defaultDeps, missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
 
 // --- Internal State ---
 
@@ -117,11 +116,14 @@ interface ClipInfo {
   clipDuration?: number;
 }
 
-async function probeClips(clips: ClipEntry[]): Promise<ClipInfo[]> {
+type ProbeFn = (path: string, opts?: { noCache?: boolean }) => Promise<import("../types/probe.ts").ProbeResult>;
+
+async function probeClips(clips: ClipEntry[], probeFn: ProbeFn): Promise<ClipInfo[]> {
   return Promise.all(
     clips.map(async (clip) => {
-      const duration = await getDuration(clip.path);
-      const audioStream = await getAudioStream(clip.path);
+      const probeResult = await probeFn(clip.path);
+      const duration = probeResult.format.duration ?? 0;
+      const audioStream = probeResult.streams.find((s): s is AudioStreamInfo => s.type === "audio") ?? null;
       let effectiveDuration = duration;
       if (
         clip.trimStart !== undefined ||
@@ -286,7 +288,7 @@ function buildFilterComplexArgs(state: ConcatState, clipInfos: ClipInfo[]): stri
 
 // --- Factory ---
 
-export function concat(): ConcatBuilder {
+export function concat(deps: BuilderDeps = defaultDeps): ConcatBuilder {
   const state: ConcatState = {
     clips: [],
   };
@@ -367,7 +369,8 @@ export function concat(): ConcatBuilder {
       }
 
       // Demuxer path — write temp concat list
-      const listFilePath = join(tmpdir(), `ffmpeg-concat-${Date.now()}.txt`);
+      mkdirSync(deps.tempDir, { recursive: true });
+      const listFilePath = join(deps.tempDir, `ffmpeg-concat-${Date.now()}.txt`);
       writeConcatList(state.clips, listFilePath);
       return buildDemuxerArgs(state, listFilePath);
     },
@@ -379,10 +382,11 @@ export function concat(): ConcatBuilder {
 
       if (!needsFilterComplex(state)) {
         // Demuxer path
-        const listFilePath = join(tmpdir(), `ffmpeg-concat-${Date.now()}.txt`);
+        mkdirSync(deps.tempDir, { recursive: true });
+      const listFilePath = join(deps.tempDir, `ffmpeg-concat-${Date.now()}.txt`);
         writeConcatList(state.clips, listFilePath);
         try {
-          await runFFmpeg(buildDemuxerArgs(state, listFilePath), options);
+          await deps.execute(buildDemuxerArgs(state, listFilePath), options);
         } finally {
           try {
             unlinkSync(listFilePath);
@@ -391,7 +395,7 @@ export function concat(): ConcatBuilder {
           }
         }
 
-        const { outputPath, duration, sizeBytes } = await probeOutput(outPath);
+        const { outputPath, duration, sizeBytes } = await probeOutput(outPath, deps.probe);
         return {
           outputPath,
           duration,
@@ -402,11 +406,11 @@ export function concat(): ConcatBuilder {
       }
 
       // Filter complex path — probe all clips
-      const clipInfos = await probeClips(state.clips);
+      const clipInfos = await probeClips(state.clips, deps.probe);
       const args = buildFilterComplexArgs(state, clipInfos);
-      await runFFmpeg(args, options);
+      await deps.execute(args, options);
 
-      const { outputPath, duration, sizeBytes } = await probeOutput(outPath);
+      const { outputPath, duration, sizeBytes } = await probeOutput(outPath, deps.probe);
       return {
         outputPath,
         duration,

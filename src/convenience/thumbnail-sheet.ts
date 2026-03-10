@@ -1,10 +1,9 @@
 import { statSync } from "node:fs";
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { probe } from "../core/probe.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ThumbnailSheetResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 
-interface ThumbnailSheetOptions {
+export interface ThumbnailSheetOptions {
   input: string;
   /** Number of columns in the grid */
   columns: number;
@@ -18,13 +17,14 @@ interface ThumbnailSheetOptions {
 }
 
 export async function thumbnailSheet(
+  deps: BuilderDeps,
   options: ThumbnailSheetOptions,
   executeOptions?: ExecuteOptions,
 ): Promise<ThumbnailSheetResult> {
   const { input, columns, rows, width, timestamps: tsOption, output } = options;
   const totalFrames = columns * rows;
 
-  const probeResult = await probe(input);
+  const probeResult = await deps.probe(input);
   const videoStream = probeResult.streams.find((s) => s.type === "video");
   const duration = probeResult.format.duration ?? 0;
 
@@ -55,7 +55,7 @@ export async function thumbnailSheet(
     }
 
     // Compute frame numbers from timestamps using probe fps
-    const fps = videoStream?.avgFrameRate ?? videoStream?.frameRate ?? 25;
+    const fps = videoStream?.type === "video" ? (videoStream.avgFrameRate || videoStream.frameRate) : 25;
     const frameNums = timestamps.map((ts) => Math.round(ts * fps));
     const selectExpr = frameNums.map((n) => `eq(n,${n})`).join("+");
     filterStr = `select='${selectExpr}',scale=${width}:-2,tile=${columns}x${rows}`;
@@ -63,10 +63,10 @@ export async function thumbnailSheet(
 
   const args = ["-y", "-i", input, "-vf", filterStr, "-frames:v", "1", "-vsync", "vfr", output];
 
-  await runFFmpeg(args, executeOptions);
+  await deps.execute(args, executeOptions);
 
   // Probe output for dimensions
-  const outProbe = await probe(output, { noCache: true });
+  const outProbe = await deps.probe(output, { noCache: true });
   const outVideo = outProbe.streams.find((s) => s.type === "video");
   const fileStat = statSync(output);
 

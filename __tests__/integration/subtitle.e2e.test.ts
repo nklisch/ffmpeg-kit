@@ -2,8 +2,10 @@ import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeAll, expect, it } from "vitest";
-import { subtitle } from "../../src/operations/subtitle.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { describeWithFFmpeg, expectFileExists, FIXTURES, probeOutput, tmp } from "../helpers.ts";
+
+const ffmpeg = createFFmpeg();
 
 beforeAll(() => {
   mkdirSync(join(tmpdir(), "ffmpeg-kit-test"), { recursive: true });
@@ -14,7 +16,7 @@ describeWithFFmpeg(
   () => {
     it("embeds soft sub SRT into MKV", async () => {
       const output = tmp("subtitle-soft.mkv");
-      const result = await subtitle()
+      const result = await ffmpeg.subtitle()
         .input(FIXTURES.videoShort)
         .softSub({ path: FIXTURES.subtitle })
         .output(output)
@@ -36,7 +38,7 @@ describeWithFFmpeg(
 
     it("embeds soft sub with language and title metadata", async () => {
       const output = tmp("subtitle-soft-meta.mkv");
-      const result = await subtitle()
+      const result = await ffmpeg.subtitle()
         .input(FIXTURES.videoShort)
         .softSub({ path: FIXTURES.subtitle, language: "eng", title: "English" })
         .output(output)
@@ -51,7 +53,7 @@ describeWithFFmpeg(
 
     it("hard burns SRT into video", async () => {
       const output = tmp("subtitle-hardburn.mp4");
-      const result = await subtitle()
+      const result = await ffmpeg.subtitle()
         .input(FIXTURES.videoShort)
         .hardBurn({ path: FIXTURES.subtitle })
         .output(output)
@@ -73,7 +75,7 @@ describeWithFFmpeg(
     it("extracts subtitle stream from MKV with subtitles", async () => {
       // First embed a subtitle
       const mkvWithSub = tmp("subtitle-with-sub.mkv");
-      await subtitle()
+      await ffmpeg.subtitle()
         .input(FIXTURES.videoShort)
         .softSub({ path: FIXTURES.subtitle })
         .output(mkvWithSub)
@@ -85,7 +87,7 @@ describeWithFFmpeg(
       expect(subStream).toBeDefined();
 
       const extractedSrt = tmp("subtitle-extracted.srt");
-      const result = await subtitle()
+      const result = await ffmpeg.subtitle()
         .input(mkvWithSub)
         .extract({ streamIndex: subStream!.index, format: "srt" })
         .output(extractedSrt)
@@ -97,7 +99,7 @@ describeWithFFmpeg(
 
     it("tryExecute() returns success result", async () => {
       const output = tmp("subtitle-try-success.mkv");
-      const result = await subtitle()
+      const result = await ffmpeg.subtitle()
         .input(FIXTURES.videoShort)
         .softSub({ path: FIXTURES.subtitle })
         .output(output)

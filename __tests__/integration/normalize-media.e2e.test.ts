@@ -2,9 +2,11 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
-import { normalizeMedia } from "../../src/convenience/normalize-media.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { FIXTURES, describeWithFFmpeg } from "../helpers.ts";
 import { probe } from "../../src/core/probe.ts";
+
+const ffmpeg = createFFmpeg();
 
 describeWithFFmpeg("normalizeMedia", () => {
   it("all outputs have matching dimensions", async () => {
@@ -12,7 +14,7 @@ describeWithFFmpeg("normalizeMedia", () => {
     mkdirSync(outDir, { recursive: true });
 
     const target = { width: 320, height: 180, fps: 24 };
-    const result = await normalizeMedia({
+    const result = await ffmpeg.normalizeMedia({
       inputs: [FIXTURES.videoH264, FIXTURES.videoShort],
       outputDir: outDir,
       target,
@@ -45,7 +47,7 @@ describeWithFFmpeg("normalizeMedia", () => {
     const fps = Math.round(video.avgFrameRate || video.frameRate);
     const target = { width: video.width, height: video.height, fps };
 
-    const result = await normalizeMedia({
+    const result = await ffmpeg.normalizeMedia({
       inputs: [FIXTURES.videoH264],
       outputDir: outDir,
       target,

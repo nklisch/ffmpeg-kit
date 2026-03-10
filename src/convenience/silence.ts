@@ -1,18 +1,11 @@
 import { extname, join } from "node:path";
-import { getDuration } from "../core/probe.ts";
 import { audio } from "../operations/audio.ts";
 import { transform } from "../operations/transform.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { SilenceRange, SplitSegment } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 
-interface DetectSilenceOptions {
-  /** Silence threshold in dB (default: -50) */
-  threshold?: number;
-  /** Minimum silence duration in seconds (default: 0.5) */
-  minDuration?: number;
-}
-
-interface TrimSilenceOptions {
+export interface TrimSilenceOptions {
   input: string;
   output: string;
   /** Silence threshold in dB (default: -40) */
@@ -21,7 +14,7 @@ interface TrimSilenceOptions {
   padding?: number;
 }
 
-interface SplitOnSilenceOptions {
+export interface SplitOnSilenceOptions {
   input: string;
   /** Output directory for segments */
   outputDir: string;
@@ -34,11 +27,12 @@ interface SplitOnSilenceOptions {
 }
 
 export async function detectSilence(
+  deps: BuilderDeps,
   input: string,
-  options?: DetectSilenceOptions,
+  options?: { threshold?: number; minDuration?: number },
   executeOptions?: ExecuteOptions,
 ): Promise<SilenceRange[]> {
-  const result = await audio()
+  const result = await audio(deps)
     .input(input)
     .detectSilence({
       threshold: options?.threshold ?? -50,
@@ -49,15 +43,17 @@ export async function detectSilence(
 }
 
 export async function trimSilence(
+  deps: BuilderDeps,
   options: TrimSilenceOptions,
   executeOptions?: ExecuteOptions,
 ): Promise<{ outputPath: string; duration: number; sizeBytes: number }> {
   const { input, output, threshold = -40, padding = 0.1 } = options;
 
-  const [silences, totalDuration] = await Promise.all([
-    detectSilence(input, { threshold }, executeOptions),
-    getDuration(input),
+  const [silences, inputProbe] = await Promise.all([
+    detectSilence(deps, input, { threshold }, executeOptions),
+    deps.probe(input),
   ]);
+  const totalDuration = inputProbe.format.duration ?? 0;
 
   let trimStart = 0;
   let trimEnd = totalDuration;
@@ -76,7 +72,7 @@ export async function trimSilence(
     }
   }
 
-  const result = await transform()
+  const result = await transform(deps)
     .input(input)
     .trimStart(trimStart)
     .trimEnd(trimEnd)
@@ -87,15 +83,17 @@ export async function trimSilence(
 }
 
 export async function splitOnSilence(
+  deps: BuilderDeps,
   options: SplitOnSilenceOptions,
   executeOptions?: ExecuteOptions,
 ): Promise<SplitSegment[]> {
   const { input, outputDir, threshold = -40, minSilence = 0.5, minSegment = 1.0 } = options;
 
-  const [silences, totalDuration] = await Promise.all([
-    detectSilence(input, { threshold, minDuration: minSilence }, executeOptions),
-    getDuration(input),
+  const [silences, inputProbe] = await Promise.all([
+    detectSilence(deps, input, { threshold, minDuration: minSilence }, executeOptions),
+    deps.probe(input),
   ]);
+  const totalDuration = inputProbe.format.duration ?? 0;
 
   // Compute segment boundaries using midpoint of each silence as split point
   const splitPoints: number[] = [0];
@@ -124,7 +122,7 @@ export async function splitOnSilence(
     const segPath = join(outputDir, `segment_${padded}${ext}`);
     const segDuration = seg.end - seg.start;
 
-    await transform()
+    await transform(deps)
       .input(input)
       .trimStart(seg.start)
       .duration(segDuration)

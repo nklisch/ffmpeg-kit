@@ -1,13 +1,13 @@
 import { statSync } from "node:fs";
-import { execute as runFFmpeg } from "../core/execute.ts";
-import { probe } from "../core/probe.ts";
 import type { PixelFormat, VideoCodec } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { ImageResult, OperationResult } from "../types/results.ts";
+import type { BuilderDeps } from "../types/sdk.ts";
 import {
   DEFAULT_AUDIO_CODEC_ARGS,
   DEFAULT_VIDEO_CODEC_ARGS,
+  defaultDeps,
   missingFieldError,
   resolveDimensions,
   wrapTryExecute,
@@ -196,7 +196,7 @@ export interface ImageBuilder {
   tryExecute(options?: ExecuteOptions): Promise<OperationResult<ImageResult>>;
 }
 
-export function image(): ImageBuilder {
+export function image(deps: BuilderDeps = defaultDeps): ImageBuilder {
   const state: ImageState = {};
 
   const builder: ImageBuilder = {
@@ -245,7 +245,7 @@ export function image(): ImageBuilder {
     async execute(options) {
       validateImageState(state);
       const args = buildArgs(state);
-      await runFFmpeg(args, options);
+      await deps.execute(args, options);
 
       const stat = statSync(state.outputPath);
 
@@ -254,7 +254,7 @@ export function image(): ImageBuilder {
       let height: number | undefined;
 
       try {
-        const probeResult = await probe(state.outputPath, { noCache: true });
+        const probeResult = await deps.probe(state.outputPath, { noCache: true });
         const videoStream = probeResult.streams.find(
           (s): s is VideoStreamInfo => s.type === "video",
         );

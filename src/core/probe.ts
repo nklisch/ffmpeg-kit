@@ -18,6 +18,8 @@ export interface ProbeConfig {
         ttlMs?: number;
       }
     | false;
+  /** Injected cache instance (for per-SDK-instance caching). Overrides `cache` config. */
+  cacheInstance?: Cache<string, ProbeResult>;
 }
 
 function zodParseOrThrow<T>(schema: ZodSchema<T>, data: unknown, label: string, command: string[]): T {
@@ -127,7 +129,8 @@ export async function probe(
   config?: ProbeConfig,
 ): Promise<ProbeResult> {
   const ffprobePath = config?.ffprobePath ?? "ffprobe";
-  const cacheDisabled = config?.cache === false;
+  const cacheDisabled = config?.cache === false && config?.cacheInstance === undefined;
+  const activeCache = config?.cacheInstance ?? probeCache;
   const absolutePath = resolve(inputPath);
 
   // Build cache key
@@ -143,7 +146,7 @@ export async function probe(
 
   // Check cache
   if (cacheKey !== null && options?.noCache !== true) {
-    const cached = probeCache.get(cacheKey);
+    const cached = activeCache.get(cacheKey);
     if (cached !== undefined) return cached;
   }
 
@@ -170,7 +173,7 @@ export async function probe(
 
   // Store in cache
   if (!cacheDisabled && cacheKey !== null) {
-    probeCache.set(cacheKey, probeResult);
+    activeCache.set(cacheKey, probeResult);
   }
 
   return probeResult;

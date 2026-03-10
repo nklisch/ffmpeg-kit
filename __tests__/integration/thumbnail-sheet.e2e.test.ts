@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { thumbnailSheet } from "../../src/convenience/thumbnail-sheet.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import { FIXTURES, describeWithFFmpeg, expectFileExists, tmp } from "../helpers.ts";
 import { probe } from "../../src/core/probe.ts";
+
+const ffmpeg = createFFmpeg();
 
 describeWithFFmpeg("thumbnailSheet", () => {
   it("generates image with correct grid dimensions (uniform)", async () => {
@@ -10,7 +12,7 @@ describeWithFFmpeg("thumbnailSheet", () => {
     const rows = 2;
     const thumbWidth = 160;
 
-    const result = await thumbnailSheet({
+    const result = await ffmpeg.thumbnailSheet({
       input: FIXTURES.videoH264,
       columns,
       rows,
@@ -36,7 +38,7 @@ describeWithFFmpeg("thumbnailSheet", () => {
     const columns = 2;
     const rows = 2;
 
-    const result = await thumbnailSheet({
+    const result = await ffmpeg.thumbnailSheet({
       input: FIXTURES.videoH264,
       columns,
       rows,
@@ -58,7 +60,7 @@ describeWithFFmpeg("thumbnailSheet", () => {
     const output = tmp("thumbnail-custom.jpg");
     const customTimestamps = [1, 2, 3, 4];
 
-    const result = await thumbnailSheet({
+    const result = await ffmpeg.thumbnailSheet({
       input: FIXTURES.videoH264,
       columns: 2,
       rows: 2,
