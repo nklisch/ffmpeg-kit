@@ -204,5 +204,52 @@ export type { Platform } from "./util/platform.ts";
 export { findExecutable, getPlatform, normalizePath } from "./util/platform.ts";
 export type { TempFile, TempFileOptions } from "./util/tempfile.ts";
 export { createTempFile, createTempFiles } from "./util/tempfile.ts";
+// Filters
+export {
+  acrossfade,
+  adelay,
+  afade,
+  afftdn,
+  agate,
+  alimiter,
+  amix,
+  acompressor,
+  areverse,
+  aresample,
+  atempo,
+  bass,
+  equalizer,
+  highpass,
+  loudnorm,
+  lowpass,
+  silencedetect,
+  treble,
+  volume,
+} from "./filters/audio.ts";
+export { between, clamp, easing, enable, ifExpr, lerp, timeRange } from "./filters/helpers.ts";
+export {
+  chain,
+  filter,
+  filterGraph,
+} from "./filters/graph.ts";
+export type { FilterGraphBuilder } from "./filters/graph.ts";
+export {
+  chromakey,
+  colorkey,
+  crop as cropFilter,
+  drawtext,
+  format as formatFilter,
+  fps,
+  hflip,
+  overlayFilter,
+  pad,
+  reverse as reverseFilter,
+  scale as scaleFilter,
+  setpts,
+  transpose,
+  vflip,
+  xfade,
+  zoompan,
+} from "./filters/video.ts";
 // Utilities
 export { parseTimecode } from "./util/timecode.ts";
