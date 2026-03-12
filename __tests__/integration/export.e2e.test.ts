@@ -15,7 +15,8 @@ const ffmpeg = createFFmpeg();
 describeWithFFmpeg("exportVideo()", () => {
   it("exports with youtube_hd preset", async () => {
     const out = tmp("export-youtube-hd.mp4");
-    const result = await ffmpeg.exportVideo()
+    const result = await ffmpeg
+      .exportVideo()
       .input(FIXTURES.videoShort)
       .preset("youtube_hd")
       .output(out)
@@ -34,7 +35,8 @@ describeWithFFmpeg("exportVideo()", () => {
 
   it("exports with youtube_draft preset", async () => {
     const out = tmp("export-youtube-draft.mp4");
-    const result = await ffmpeg.exportVideo()
+    const result = await ffmpeg
+      .exportVideo()
       .input(FIXTURES.videoShort)
       .preset("youtube_draft")
       .output(out)
@@ -46,7 +48,8 @@ describeWithFFmpeg("exportVideo()", () => {
 
   it("exports with separate video + audio inputs", async () => {
     const out = tmp("export-separate-inputs.mp4");
-    const result = await ffmpeg.exportVideo()
+    const result = await ffmpeg
+      .exportVideo()
       .videoInput(FIXTURES.videoNoAudio)
       .audioInput(FIXTURES.audioSpeech)
       .output(out)
@@ -73,7 +76,8 @@ describeWithFFmpeg("exportVideo()", () => {
 
   it("exports as MKV format", async () => {
     const out = tmp("export-mkv.mkv");
-    const result = await ffmpeg.exportVideo()
+    const result = await ffmpeg
+      .exportVideo()
       .input(FIXTURES.videoShort)
       .format("mkv")
       .output(out)
@@ -96,7 +100,8 @@ describeWithFFmpeg("exportVideo()", () => {
 
   it("writes metadata tags", async () => {
     const out = tmp("export-metadata.mp4");
-    await ffmpeg.exportVideo()
+    await ffmpeg
+      .exportVideo()
       .input(FIXTURES.videoShort)
       .metadata({ title: "Test Video", artist: "Test Artist" })
       .output(out)
@@ -109,7 +114,12 @@ describeWithFFmpeg("exportVideo()", () => {
 
   it("maps specific streams", async () => {
     const out = tmp("export-mapped.mp4");
-    await ffmpeg.exportVideo().input(FIXTURES.videoShort).map(["0:v:0", "0:a:0"]).output(out).execute();
+    await ffmpeg
+      .exportVideo()
+      .input(FIXTURES.videoShort)
+      .map(["0:v:0", "0:a:0"])
+      .output(out)
+      .execute();
 
     expectFileExists(out);
     const probed = await probeOutput(out);
@@ -119,7 +129,12 @@ describeWithFFmpeg("exportVideo()", () => {
 
   it("exports with outputArgs", async () => {
     const out = tmp("export-output-args.mp4");
-    await ffmpeg.exportVideo().input(FIXTURES.videoShort).outputArgs(["-t", "1"]).output(out).execute();
+    await ffmpeg
+      .exportVideo()
+      .input(FIXTURES.videoShort)
+      .outputArgs(["-t", "1"])
+      .output(out)
+      .execute();
 
     expectFileExists(out);
     const probed = await probeOutput(out);
@@ -129,7 +144,8 @@ describeWithFFmpeg("exportVideo()", () => {
 
   it("performs two-pass encoding", async () => {
     const out = tmp("export-twopass.mp4");
-    const result = await ffmpeg.exportVideo()
+    const result = await ffmpeg
+      .exportVideo()
       .input(FIXTURES.videoShort)
       .videoBitrate("1M")
       .twoPass()
@@ -153,7 +169,8 @@ describeWithFFmpeg("exportVideo()", () => {
     });
 
     it("returns failure result on invalid input", async () => {
-      const result = await ffmpeg.exportVideo()
+      const result = await ffmpeg
+        .exportVideo()
         .input("nonexistent-file.mp4")
         .output(tmp("export-try-fail.mp4"))
         .tryExecute();

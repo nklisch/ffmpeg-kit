@@ -69,9 +69,13 @@ export function pipeline(deps: BuilderDeps): PipelineBuilder {
       stepDurations.push(stepDurationMs);
       state.onStepCompleteCallback?.({ stepIndex: 0, stepCount, durationMs: stepDurationMs });
     } else {
-      const { files: tempFiles, cleanup } = createTempFiles(stepCount - 1, {
-        suffix: outputExt,
-      }, deps.tempDir);
+      const { files: tempFiles, cleanup } = createTempFiles(
+        stepCount - 1,
+        {
+          suffix: outputExt,
+        },
+        deps.tempDir,
+      );
       try {
         for (let i = 0; i < stepCount; i++) {
           // biome-ignore lint/style/noNonNullAssertion: loop bounds guarantee these are defined

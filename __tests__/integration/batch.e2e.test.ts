@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 import { createFFmpeg } from "../../src/sdk.ts";
-import { FIXTURES, describeWithFFmpeg, expectFileExists, tmp } from "../helpers.ts";
+import { describeWithFFmpeg, expectFileExists, FIXTURES, tmp } from "../helpers.ts";
 
 const ffmpeg = createFFmpeg();
 
@@ -38,7 +38,7 @@ describeWithFFmpeg("batch E2E", () => {
     const result = await ffmpeg.batch({
       inputs,
       onItemError: onError,
-      operation: (input) => {
+      operation: (_input) => {
         const outPath = tmp(`batch-fail-${Date.now()}.mp4`);
         return {
           input: (path: string) => ({

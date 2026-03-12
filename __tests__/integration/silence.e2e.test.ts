@@ -1,11 +1,10 @@
-import { existsSync, readdirSync } from "node:fs";
-import { describe, expect, it } from "vitest";
-import { createFFmpeg } from "../../src/sdk.ts";
-import { FIXTURES, describeWithFFmpeg, expectFileExists, tmp } from "../helpers.ts";
-import { getDuration } from "../../src/core/probe.ts";
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { expect, it } from "vitest";
+import { getDuration } from "../../src/core/probe.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
+import { describeWithFFmpeg, expectFileExists, FIXTURES, tmp } from "../helpers.ts";
 
 const ffmpeg = createFFmpeg();
 
@@ -41,8 +40,18 @@ describeWithFFmpeg("trimSilence", () => {
     const output1 = tmp("trim-pad0.wav");
     const output2 = tmp("trim-pad1.wav");
 
-    await ffmpeg.trimSilence({ input: FIXTURES.audioSpeech, output: output1, threshold: -40, padding: 0 });
-    await ffmpeg.trimSilence({ input: FIXTURES.audioSpeech, output: output2, threshold: -40, padding: 0.5 });
+    await ffmpeg.trimSilence({
+      input: FIXTURES.audioSpeech,
+      output: output1,
+      threshold: -40,
+      padding: 0,
+    });
+    await ffmpeg.trimSilence({
+      input: FIXTURES.audioSpeech,
+      output: output2,
+      threshold: -40,
+      padding: 0.5,
+    });
 
     expectFileExists(output1);
     expectFileExists(output2);

@@ -1,9 +1,9 @@
 import { statSync } from "node:fs";
 import type { AudioCodec } from "../types/codecs.ts";
-import type { AudioStreamInfo } from "../types/probe.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { AudioInputConfig, DuckConfig, FadeCurve, NormalizeConfig } from "../types/filters.ts";
 import type { ExecuteOptions } from "../types/options.ts";
+import type { AudioStreamInfo } from "../types/probe.ts";
 import type { AudioResult, OperationResult } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
 import { buildAtempoChain } from "../util/audio-filters.ts";
@@ -130,7 +130,8 @@ function pushCodecArgs(args: string[], state: AudioState): void {
   if (state.bitrateValue !== undefined) args.push("-b:a", state.bitrateValue);
   if (state.sampleRateValue !== undefined) args.push("-ar", String(state.sampleRateValue));
   if (state.channelsValue !== undefined) args.push("-ac", String(state.channelsValue));
-  if (state.channelLayoutValue !== undefined) args.push("-channel_layout", state.channelLayoutValue);
+  if (state.channelLayoutValue !== undefined)
+    args.push("-channel_layout", state.channelLayoutValue);
 }
 
 // --- Filter Chain Construction ---

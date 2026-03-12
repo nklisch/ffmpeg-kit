@@ -3,7 +3,13 @@ import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { GifResult, OperationResult } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
-import { defaultDeps, missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
+import {
+  defaultDeps,
+  missingFieldError,
+  probeOutput,
+  resolveDimensions,
+  wrapTryExecute,
+} from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 type DitherMethod = "bayer" | "heckbert" | "floyd_steinberg" | "sierra2" | "sierra2_4a" | "none";
@@ -159,7 +165,10 @@ export function gif(deps: BuilderDeps = defaultDeps): GifBuilder {
       const args = buildArgs(state);
       await deps.execute(args, options);
 
-      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(state.outputPath, deps.probe);
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(
+        state.outputPath,
+        deps.probe,
+      );
       const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
       const fps = state.fpsValue ?? 10;
 

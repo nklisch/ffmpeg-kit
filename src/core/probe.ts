@@ -22,7 +22,12 @@ export interface ProbeConfig {
   cacheInstance?: Cache<string, ProbeResult>;
 }
 
-function zodParseOrThrow<T>(schema: ZodSchema<T>, data: unknown, label: string, command: string[]): T {
+function zodParseOrThrow<T>(
+  schema: ZodSchema<T>,
+  data: unknown,
+  label: string,
+  command: string[],
+): T {
   const result = schema.safeParse(data);
   if (!result.success) {
     throw new FFmpegError({
@@ -169,7 +174,12 @@ export async function probe(
   // Validate raw structure, then parse into ProbeResult
   const cmd = [ffprobePath, absolutePath];
   zodParseOrThrow(rawProbeOutputSchema, rawJson, "ffprobe output validation failed", cmd);
-  const probeResult = zodParseOrThrow(probeResultSchema, rawJson, "ffprobe result parsing failed", cmd);
+  const probeResult = zodParseOrThrow(
+    probeResultSchema,
+    rawJson,
+    "ffprobe result parsing failed",
+    cmd,
+  );
 
   // Store in cache
   if (!cacheDisabled && cacheKey !== null) {

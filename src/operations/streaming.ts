@@ -296,7 +296,6 @@ interface DashState {
   outputPath?: string;
 }
 
-
 function buildDashArgs(state: DashState): string[] {
   const args: string[] = ["-y"];
 

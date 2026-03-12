@@ -58,10 +58,7 @@ describeWithFFmpeg("FilterGraphBuilder E2E", () => {
       "[base][pip]overlay=x=10:y=10[out]",
     ].join(";");
 
-    const args = filterGraph()
-      .complex(complexStr)
-      .output("out", "v")
-      .toArgs();
+    const args = filterGraph().complex(complexStr).output("out", "v").toArgs();
 
     await execute([
       "-i",
@@ -88,11 +85,7 @@ describeWithFFmpeg("FilterGraphBuilder E2E", () => {
       `[0:a]${loudnorm({ i: -14 })}[a0]`,
     ].join(";");
 
-    const args = filterGraph()
-      .complex(complexStr)
-      .output("v0", "v")
-      .output("a0", "a")
-      .toArgs();
+    const args = filterGraph().complex(complexStr).output("v0", "v").output("a0", "a").toArgs();
 
     await execute(["-i", FIXTURES.videoShort, ...args, "-t", "2", output]);
 

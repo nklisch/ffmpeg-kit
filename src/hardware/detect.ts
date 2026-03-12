@@ -2,8 +2,8 @@ import { execFile } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import type { HwAccelMode, VideoCodec } from "../types/codecs.ts";
 import { classifyCodecFamily } from "../encoding/codecs.ts";
+import type { HwAccelMode, VideoCodec } from "../types/codecs.ts";
 import { findExecutable } from "../util/platform.ts";
 
 const execFileAsync = promisify(execFile);

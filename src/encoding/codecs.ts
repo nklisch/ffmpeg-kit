@@ -1,5 +1,5 @@
-import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { AudioCodec, HwAccelMode, VideoCodec } from "../types/codecs.ts";
+import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 
 /** Codec family identifier */
 export type CodecFamily = "h264" | "hevc" | "av1" | "vp9" | "vp8" | "prores";

@@ -7,7 +7,14 @@ import type { ExecuteOptions } from "../types/options.ts";
 import type { AudioStreamInfo } from "../types/probe.ts";
 import type { ConcatResult, OperationResult } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
-import { DEFAULT_AUDIO_CODEC_ARGS, DEFAULT_VIDEO_CODEC_ARGS, defaultDeps, missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
+import {
+  DEFAULT_AUDIO_CODEC_ARGS,
+  DEFAULT_VIDEO_CODEC_ARGS,
+  defaultDeps,
+  missingFieldError,
+  probeOutput,
+  wrapTryExecute,
+} from "../util/builder-helpers.ts";
 
 // --- Internal State ---
 
@@ -116,14 +123,18 @@ interface ClipInfo {
   clipDuration?: number;
 }
 
-type ProbeFn = (path: string, opts?: { noCache?: boolean }) => Promise<import("../types/probe.ts").ProbeResult>;
+type ProbeFn = (
+  path: string,
+  opts?: { noCache?: boolean },
+) => Promise<import("../types/probe.ts").ProbeResult>;
 
 async function probeClips(clips: ClipEntry[], probeFn: ProbeFn): Promise<ClipInfo[]> {
   return Promise.all(
     clips.map(async (clip) => {
       const probeResult = await probeFn(clip.path);
       const duration = probeResult.format.duration ?? 0;
-      const audioStream = probeResult.streams.find((s): s is AudioStreamInfo => s.type === "audio") ?? null;
+      const audioStream =
+        probeResult.streams.find((s): s is AudioStreamInfo => s.type === "audio") ?? null;
       let effectiveDuration = duration;
       if (
         clip.trimStart !== undefined ||
@@ -383,7 +394,7 @@ export function concat(deps: BuilderDeps = defaultDeps): ConcatBuilder {
       if (!needsFilterComplex(state)) {
         // Demuxer path
         mkdirSync(deps.tempDir, { recursive: true });
-      const listFilePath = join(deps.tempDir, `ffmpeg-concat-${Date.now()}.txt`);
+        const listFilePath = join(deps.tempDir, `ffmpeg-concat-${Date.now()}.txt`);
         writeConcatList(state.clips, listFilePath);
         try {
           await deps.execute(buildDemuxerArgs(state, listFilePath), options);

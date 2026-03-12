@@ -25,9 +25,21 @@ describe("batch", () => {
       }),
     });
     expect(result.results).toHaveLength(3);
-    expect(result.results[0]).toMatchObject({ success: true, input: "a.mp4", data: { name: "a.mp4" } });
-    expect(result.results[1]).toMatchObject({ success: true, input: "b.mp4", data: { name: "b.mp4" } });
-    expect(result.results[2]).toMatchObject({ success: true, input: "c.mp4", data: { name: "c.mp4" } });
+    expect(result.results[0]).toMatchObject({
+      success: true,
+      input: "a.mp4",
+      data: { name: "a.mp4" },
+    });
+    expect(result.results[1]).toMatchObject({
+      success: true,
+      input: "b.mp4",
+      data: { name: "b.mp4" },
+    });
+    expect(result.results[2]).toMatchObject({
+      success: true,
+      input: "c.mp4",
+      data: { name: "c.mp4" },
+    });
   });
 
   it("captures individual failures without stopping the batch", async () => {
@@ -72,7 +84,9 @@ describe("batch", () => {
       onItemError: onError,
       operation: () => ({
         input: (_path: string) => ({
-          execute: async () => { throw new Error("boom"); },
+          execute: async () => {
+            throw new Error("boom");
+          },
         }),
       }),
     });

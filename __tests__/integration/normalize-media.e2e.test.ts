@@ -1,10 +1,10 @@
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { describe, expect, it } from "vitest";
-import { createFFmpeg } from "../../src/sdk.ts";
-import { FIXTURES, describeWithFFmpeg } from "../helpers.ts";
+import { join } from "node:path";
+import { expect, it } from "vitest";
 import { probe } from "../../src/core/probe.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
+import { describeWithFFmpeg, FIXTURES } from "../helpers.ts";
 
 const ffmpeg = createFFmpeg();
 

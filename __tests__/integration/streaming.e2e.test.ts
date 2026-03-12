@@ -41,7 +41,8 @@ describeWithFFmpeg(
   () => {
     it("creates HLS output with mpegts segments", async () => {
       const output = join(testDir, "output.m3u8");
-      const result = await ffmpeg.hls()
+      const result = await ffmpeg
+        .hls()
         .input(FIXTURES.videoShort)
         .segmentDuration(1)
         .output(output)
@@ -58,7 +59,8 @@ describeWithFFmpeg(
 
     it("creates HLS output with fmp4 segments", async () => {
       const output = join(testDir, "output.m3u8");
-      const result = await ffmpeg.hls()
+      const result = await ffmpeg
+        .hls()
         .input(FIXTURES.videoShort)
         .segmentType("fmp4")
         .segmentDuration(1)
@@ -75,7 +77,8 @@ describeWithFFmpeg(
 
     it("respects segment duration and produces valid HLS output", async () => {
       const output = join(testDir, "output.m3u8");
-      const result = await ffmpeg.hls()
+      const result = await ffmpeg
+        .hls()
         .input(FIXTURES.videoH264)
         .segmentDuration(2)
         .output(output)
@@ -118,7 +121,8 @@ describeWithFFmpeg(
 
     it("respects segment duration", async () => {
       const output = join(testDir, "output.mpd");
-      const result = await ffmpeg.dash()
+      const result = await ffmpeg
+        .dash()
         .input(FIXTURES.videoShort)
         .segmentDuration(2)
         .output(output)

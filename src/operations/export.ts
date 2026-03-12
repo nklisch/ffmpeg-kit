@@ -21,7 +21,12 @@ import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ExportResult, OperationResult } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
-import { defaultDeps, missingFieldError, probeOutput, wrapTryExecute } from "../util/builder-helpers.ts";
+import {
+  defaultDeps,
+  missingFieldError,
+  probeOutput,
+  wrapTryExecute,
+} from "../util/builder-helpers.ts";
 import { createTempFile } from "../util/tempfile.ts";
 
 // --- Internal State ---
@@ -436,7 +441,10 @@ export function exportVideo(deps: BuilderDeps = defaultDeps): ExportBuilder {
       // Prepare chapter file if needed
       let chapterTempFile: ReturnType<typeof createTempFile> | undefined;
       if (state.chaptersValue !== undefined && state.chaptersValue.length > 0) {
-        chapterTempFile = createTempFile({ suffix: ".txt", subdir: "export-chapters" }, deps.tempDir);
+        chapterTempFile = createTempFile(
+          { suffix: ".txt", subdir: "export-chapters" },
+          deps.tempDir,
+        );
         writeChapterFile(state.chaptersValue, chapterTempFile.path);
       }
 
@@ -463,13 +471,19 @@ export function exportVideo(deps: BuilderDeps = defaultDeps): ExportBuilder {
             }
           }
         } else {
-          await deps.execute(buildArgs(state, undefined, undefined, chapterTempFile?.path), options);
+          await deps.execute(
+            buildArgs(state, undefined, undefined, chapterTempFile?.path),
+            options,
+          );
         }
       } finally {
         chapterTempFile?.cleanup();
       }
 
-      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(outPath, deps.probe);
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(
+        outPath,
+        deps.probe,
+      );
       const videoStream = probeResult.streams.find((s) => s.type === "video");
       const audioStream = probeResult.streams.find((s) => s.type === "audio");
 

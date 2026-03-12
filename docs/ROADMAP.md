@@ -150,22 +150,22 @@ The two most complex existing operations.
 Final export + the first two new operations not in existing codebases.
 
 ### Export
-- [ ] `src/operations/export.ts` — `ExportBuilder` with: videoInput, audioInput, input, preset, qualityTier, videoCodec, crf, videoBitrate, maxVideoBitrate, encodingPreset, pixelFormat, profile, level, tune, audioCodec, audioBitrate, audioSampleRate, audioChannels, faststart, format, hwAccel, twoPass, map, outputArgs, inputArgs, metadata, chapters, output, toArgs, execute, tryExecute
+- [x] `src/operations/export.ts` — `ExportBuilder` with: videoInput, audioInput, input, preset, qualityTier, videoCodec, crf, videoBitrate, maxVideoBitrate, encodingPreset, pixelFormat, profile, level, tune, audioCodec, audioBitrate, audioSampleRate, audioChannels, faststart, format, hwAccel, twoPass, map, outputArgs, inputArgs, metadata, chapters, output, toArgs, execute, tryExecute
 
 ### Overlay
-- [ ] `src/operations/overlay.ts` — `OverlayBuilder` with: base, addOverlay (position/anchor/scale/opacity/time/fade/blend/chromaKey/colorKey), pip, watermark, output, toArgs, execute, tryExecute
+- [x] `src/operations/overlay.ts` — `OverlayBuilder` with: base, addOverlay (position/anchor/scale/opacity/time/fade/blend/chromaKey/colorKey), pip, watermark, output, toArgs, execute, tryExecute
 
 ### Text
-- [ ] `src/operations/text.ts` — `TextBuilder` with: input, addText (position/anchor/style/time/timecode/enable), scroll, counter, output, toArgs, execute, tryExecute
+- [x] `src/operations/text.ts` — `TextBuilder` with: input, addText (position/anchor/style/time/timecode/enable), scroll, counter, output, toArgs, execute, tryExecute
 
 ### Tests
-- [ ] Builder: export preset resolution, faststart flag, stream mapping, metadata args
-- [ ] Builder: overlay position calculation, anchor→xy conversion, chroma key filter
-- [ ] Builder: drawtext escaping, style→filter params, scroll expression
-- [ ] E2E: export with each YouTube preset, separate audio input, custom CRF, MKV, WebM, faststart, metadata
-- [ ] E2E: image overlay, opacity, time range, PiP, chroma key
-- [ ] E2E: basic drawtext, box background, time range, multiple texts
-- [ ] Fixtures: `image-small.png` (overlay/watermark)
+- [x] Builder: export preset resolution, faststart flag, stream mapping, metadata args
+- [x] Builder: overlay position calculation, anchor→xy conversion, chroma key filter
+- [x] Builder: drawtext escaping, style→filter params, scroll expression
+- [x] E2E: export with each YouTube preset, separate audio input, custom CRF, MKV, WebM, faststart, metadata
+- [x] E2E: image overlay, opacity, time range, PiP, chroma key
+- [x] E2E: basic drawtext, box background, time range, multiple texts
+- [x] Fixtures: `image-small.png` (overlay/watermark)
 
 **Done when:** All export, overlay, and text rows in the coverage matrix pass.
 
@@ -176,27 +176,27 @@ Final export + the first two new operations not in existing codebases.
 Remaining new operations.
 
 ### Subtitle
-- [ ] `src/operations/subtitle.ts` — `SubtitleBuilder` with: input, softSub, hardBurn, extract, convert, output, toArgs, execute, tryExecute
+- [x] `src/operations/subtitle.ts` — `SubtitleBuilder` with: input, softSub, hardBurn, extract, convert, output, toArgs, execute, tryExecute
 
 ### Image
-- [ ] `src/operations/image.ts` — `ImageBuilder` with: input, imageSequence, convert, resize, toVideo, testPattern, solidColor, silentAudio, output, toArgs, execute, tryExecute
+- [x] `src/operations/image.ts` — `ImageBuilder` with: input, imageSequence, convert, resize, toVideo, testPattern, solidColor, silentAudio, output, toArgs, execute, tryExecute
 
 ### Streaming
-- [ ] `src/operations/streaming.ts` — `HlsBuilder` (segmentDuration, listSize, segmentFilename, segmentType, initFilename, playlistType, encrypt, baseUrl, flags, variants), `DashBuilder`, `streamTo()`
+- [x] `src/operations/streaming.ts` — `HlsBuilder` (segmentDuration, listSize, segmentFilename, segmentType, initFilename, playlistType, encrypt, baseUrl, flags, variants), `DashBuilder`, `streamTo()`
 
 ### GIF
-- [ ] `src/operations/gif.ts` — `GifBuilder` with: input, size, fps, trimStart, duration, dither, paletteMode, maxColors, loop, optimizePalette, output, toArgs, execute, tryExecute
+- [x] `src/operations/gif.ts` — `GifBuilder` with: input, size, fps, trimStart, duration, dither, paletteMode, maxColors, loop, optimizePalette, output, toArgs, execute, tryExecute
 
 ### Tests
-- [ ] Builder: subtitle stream mapping, hardBurn filter, format conversion args
-- [ ] Builder: image sequence input args, test pattern source filter, solidColor
-- [ ] Builder: HLS segment args, DASH manifest args, variant stream mapping
-- [ ] Builder: GIF palette filter graph (1-pass vs 2-pass)
-- [ ] E2E: soft sub into MKV, hard burn SRT, extract subtitle
-- [ ] E2E: image sequence → video, format conversion, image → video, test pattern
-- [ ] E2E: HLS mpegts, HLS fmp4, DASH, segment duration
-- [ ] E2E: basic GIF, palette optimization, FPS control
-- [ ] Fixtures: `subtitle.srt`, `chapters.mkv`
+- [x] Builder: subtitle stream mapping, hardBurn filter, format conversion args
+- [x] Builder: image sequence input args, test pattern source filter, solidColor
+- [x] Builder: HLS segment args, DASH manifest args, variant stream mapping
+- [x] Builder: GIF palette filter graph (1-pass vs 2-pass)
+- [x] E2E: soft sub into MKV, hard burn SRT, extract subtitle
+- [x] E2E: image sequence → video, format conversion, image → video, test pattern
+- [x] E2E: HLS mpegts, HLS fmp4, DASH, segment duration
+- [x] E2E: basic GIF, palette optimization, FPS control
+- [x] Fixtures: `subtitle.srt`, `chapters.mkv`
 
 **Done when:** All subtitle, image, streaming, and GIF rows in the coverage matrix pass.
 
@@ -206,20 +206,20 @@ Remaining new operations.
 
 Low-level filter graph builder for advanced use cases.
 
-- [ ] `src/filters/graph.ts` — `FilterGraphBuilder` with: videoFilter, audioFilter, complex, input mapping, output mapping, toString, toArgs
-- [ ] `src/filters/video.ts` — video filter string builders (scale, crop, overlay, pad, rotate, etc.)
-- [ ] `src/filters/audio.ts` — audio filter string builders (volume, loudnorm, afade, amix, etc.)
-- [ ] `src/filters/helpers.ts` — filter expression helpers (time expressions, math, conditionals, escaping)
-- [ ] `filter()` convenience: `filter('scale', { w: 1920, h: -2 })` → `"scale=w=1920:h=-2"`
-- [ ] `chain()` convenience: joins filters with commas
+- [x] `src/filters/graph.ts` — `FilterGraphBuilder` with: videoFilter, audioFilter, complex, input mapping, output mapping, toString, toArgs
+- [x] `src/filters/video.ts` — video filter string builders (scale, crop, overlay, pad, rotate, etc.)
+- [x] `src/filters/audio.ts` — audio filter string builders (volume, loudnorm, afade, amix, etc.)
+- [x] `src/filters/helpers.ts` — filter expression helpers (time expressions, math, conditionals, escaping)
+- [x] `filter()` convenience: `filter('scale', { w: 1920, h: -2 })` → `"scale=w=1920:h=-2"`
+- [x] `chain()` convenience: joins filters with commas
 
 ### Tests
-- [ ] Unit: filter string generation for each filter type
-- [ ] Unit: complex graph with labeled pads, multi-input/output
-- [ ] Unit: escaping special characters in filter values
-- [ ] E2E: simple video filter chain applied to real file
-- [ ] E2E: complex multi-input filter graph (e.g., 2 inputs overlaid)
-- [ ] E2E: combined audio + video filter graph
+- [x] Unit: filter string generation for each filter type
+- [x] Unit: complex graph with labeled pads, multi-input/output
+- [x] Unit: escaping special characters in filter values
+- [x] E2E: simple video filter chain applied to real file
+- [x] E2E: complex multi-input filter graph (e.g., 2 inputs overlaid)
+- [x] E2E: combined audio + video filter graph
 
 **Done when:** All filter graph rows in the coverage matrix pass. Operation builders can optionally delegate to filter graph builder.
 
@@ -230,37 +230,37 @@ Low-level filter graph builder for advanced use cases.
 High-level features built on top of operation builders.
 
 ### Pipeline
-- [ ] `src/convenience/pipeline.ts` — `pipeline()` builder: step chaining, auto temp files, progress aggregation, `onStepComplete` callback, cleanup on success/failure
+- [x] `src/convenience/pipeline.ts` — `pipeline()` builder: step chaining, auto temp files, progress aggregation, `onStepComplete` callback, cleanup on success/failure
 
 ### Batch
-- [ ] `src/convenience/batch.ts` — `batch()`: concurrent processing with configurable parallelism, per-item callbacks, aggregated results
+- [x] `src/convenience/batch.ts` — `batch()`: concurrent processing with configurable parallelism, per-item callbacks, aggregated results
 
 ### Smart Transcode
-- [ ] `src/convenience/smart.ts` — `smartTranscode()`: probe → compare specs → copy or re-encode, returns action report
+- [x] `src/convenience/smart.ts` — `smartTranscode()`: probe → compare specs → copy or re-encode, returns action report
 
 ### Thumbnails & Waveform
-- [ ] `src/convenience/thumbnail-sheet.ts` — `thumbnailSheet()`: grid extraction, uniform/scene timestamps
-- [ ] `src/convenience/waveform.ts` — `waveform()`: amplitude extraction at target FPS
+- [x] `src/convenience/thumbnail-sheet.ts` — `thumbnailSheet()`: grid extraction, uniform/scene timestamps
+- [x] `src/convenience/waveform.ts` — `waveform()`: amplitude extraction at target FPS
 
 ### Silence Utilities
-- [ ] `src/convenience/silence.ts` — `detectSilence()`, `trimSilence()`, `splitOnSilence()`
+- [x] `src/convenience/silence.ts` — `detectSilence()`, `trimSilence()`, `splitOnSilence()`
 
 ### Estimation & Normalization
-- [ ] `src/convenience/estimate.ts` — `estimateSize()`: bitrate × duration calculation
-- [ ] `src/convenience/normalize-media.ts` — `normalizeMedia()`: batch normalize to consistent specs
+- [x] `src/convenience/estimate.ts` — `estimateSize()`: bitrate × duration calculation
+- [x] `src/convenience/normalize-media.ts` — `normalizeMedia()`: batch normalize to consistent specs
 
 ### Quick Conversions
-- [ ] One-liners: `remux()`, `compress()`, `extractAudio()`, `imageToVideo()`, `resize()`
+- [x] One-liners: `remux()`, `compress()`, `extractAudio()`, `imageToVideo()`, `resize()`
 
 ### Tests
-- [ ] E2E: pipeline multi-step (scale → normalize → export), verify no temp files remain
-- [ ] E2E: batch 3 files, verify concurrency respected
-- [ ] E2E: smart transcode (needs encode vs. copy)
-- [ ] E2E: thumbnail sheet grid dimensions
-- [ ] E2E: waveform sample count
-- [ ] E2E: silence detection, trim, split
-- [ ] E2E: file size estimation within 50% of actual
-- [ ] E2E: remux, extractAudio, resize
+- [x] E2E: pipeline multi-step (scale → normalize → export), verify no temp files remain
+- [x] E2E: batch 3 files, verify concurrency respected
+- [x] E2E: smart transcode (needs encode vs. copy)
+- [x] E2E: thumbnail sheet grid dimensions
+- [x] E2E: waveform sample count
+- [x] E2E: silence detection, trim, split
+- [x] E2E: file size estimation within 50% of actual
+- [x] E2E: remux, extractAudio, resize
 
 **Done when:** All convenience rows in the coverage matrix pass.
 
@@ -270,17 +270,17 @@ High-level features built on top of operation builders.
 
 Wire everything into the `createFFmpeg()` factory and default `ffmpeg` namespace.
 
-- [ ] `createFFmpeg(config)` — factory with per-instance config (paths, tempDir, timeout, hwAccel, logLevel, cache settings)
-- [ ] Default `ffmpeg` instance with auto-detected paths
-- [ ] `ffmpeg.clearProbeCache()` utility
-- [ ] Verify all methods accessible through the namespace: probe, execute, extract, transform, audio, concat, exportVideo, overlay, text, subtitle, image, hls, dash, gif, pipeline, batch, smartTranscode, thumbnailSheet, waveform, detectSilence, trimSilence, splitOnSilence, estimateSize, normalizeMedia, remux, compress, extractAudio, imageToVideo, resize, detectHardware, validateInstallation, parseTimecode, filterGraph, filter, chain
-- [ ] Final `src/index.ts` barrel export — all public types + runtime exports
-- [ ] Verify tree-shaking: named exports, `"sideEffects": false`
+- [x] `createFFmpeg(config)` — factory with per-instance config (paths, tempDir, timeout, hwAccel, logLevel, cache settings)
+- [x] Default `ffmpeg` instance with auto-detected paths
+- [x] `ffmpeg.clearProbeCache()` utility
+- [x] Verify all methods accessible through the namespace: probe, execute, extract, transform, audio, concat, exportVideo, overlay, text, subtitle, image, hls, dash, gif, pipeline, batch, smartTranscode, thumbnailSheet, waveform, detectSilence, trimSilence, splitOnSilence, estimateSize, normalizeMedia, remux, compress, extractAudio, imageToVideo, resize, detectHardware, validateInstallation, parseTimecode, filterGraph, filter, chain
+- [x] Final `src/index.ts` barrel export — all public types + runtime exports
+- [x] Verify tree-shaking: named exports, `"sideEffects": false`
 
 ### Tests
-- [ ] Multiple instances with different configs don't share state
-- [ ] Default instance works with no config
-- [ ] All namespace methods are callable
+- [x] Multiple instances with different configs don't share state
+- [x] Default instance works with no config
+- [x] All namespace methods are callable
 
 **Done when:** `import { ffmpeg } from '@ffmpeg-sdk/core'` provides the full API surface. `import { createFFmpeg } from '@ffmpeg-sdk/core'` allows custom instances.
 
@@ -290,14 +290,14 @@ Wire everything into the `createFFmpeg()` factory and default `ffmpeg` namespace
 
 Final hardening before consumption by other projects.
 
-- [ ] Full TESTING.md coverage matrix audit — every row green
+- [x] Full TESTING.md coverage matrix audit — every row green
 - [ ] Run all tests 3x consecutively to verify no flakiness
-- [ ] `pnpm build` — clean build, verify `dist/` output (ESM + .d.ts + sourcemaps)
-- [ ] Verify `dist/index.d.ts` exports all public types correctly
-- [ ] Package size audit — no accidental bundling of test fixtures or dev deps
+- [x] `pnpm build` — clean build, verify `dist/` output (ESM + .d.ts + sourcemaps)
+- [x] Verify `dist/index.d.ts` exports all public types correctly
+- [x] Package size audit — no accidental bundling of test fixtures or dev deps
 - [ ] Add `workspace:*` support for monorepo consumption
 - [ ] Stress tests (gated): long files, many clips, concurrent batch, hw session limits
-- [ ] Final biome pass — zero warnings
+- [x] Final biome pass — zero warnings
 - [ ] Tag `v0.1.0`
 
 **Done when:** SDK is consumable as `workspace:*` dependency. All tests pass. Ready for termtube and youtube-ts-auto migration.

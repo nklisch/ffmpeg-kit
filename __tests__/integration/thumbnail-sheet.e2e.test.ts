@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { createFFmpeg } from "../../src/sdk.ts";
-import { FIXTURES, describeWithFFmpeg, expectFileExists, tmp } from "../helpers.ts";
+import { expect, it } from "vitest";
 import { probe } from "../../src/core/probe.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
+import { describeWithFFmpeg, expectFileExists, FIXTURES, tmp } from "../helpers.ts";
 
 const ffmpeg = createFFmpeg();
 

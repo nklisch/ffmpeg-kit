@@ -104,7 +104,6 @@ function validateTextState(
   if (!state.outputPath) throw missingFieldError("output");
 }
 
-
 function anchorToDrawtextXY(anchor: OverlayAnchor, margin: number): { x: string; y: string } {
   switch (anchor) {
     case "top-left":

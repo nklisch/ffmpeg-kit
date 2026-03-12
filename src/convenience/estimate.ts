@@ -35,7 +35,10 @@ export function formatBytes(bytes: number): string {
   return `${bytes} B`;
 }
 
-export async function estimateSize(deps: BuilderDeps, options: EstimateOptions): Promise<EstimateResult> {
+export async function estimateSize(
+  deps: BuilderDeps,
+  options: EstimateOptions,
+): Promise<EstimateResult> {
   const { input, preset, videoBitrate, audioBitrate, duration: durationOverride } = options;
 
   let duration: number;

@@ -16,7 +16,8 @@ describeWithFFmpeg(
   () => {
     it("creates basic GIF from video", async () => {
       const output = tmp("gif-basic.gif");
-      const result = await ffmpeg.gif()
+      const result = await ffmpeg
+        .gif()
         .input(FIXTURES.videoShort)
         .fps(10)
         .size({ width: 320 })
@@ -32,7 +33,8 @@ describeWithFFmpeg(
 
     it("creates GIF with palette optimization", async () => {
       const output = tmp("gif-optimized.gif");
-      const result = await ffmpeg.gif()
+      const result = await ffmpeg
+        .gif()
         .input(FIXTURES.videoShort)
         .fps(10)
         .size({ width: 320 })
@@ -58,7 +60,8 @@ describeWithFFmpeg(
 
     it("respects trim and duration", async () => {
       const output = tmp("gif-trimmed.gif");
-      const result = await ffmpeg.gif()
+      const result = await ffmpeg
+        .gif()
         .input(FIXTURES.videoH264)
         .trimStart(1)
         .duration(2)
@@ -73,7 +76,8 @@ describeWithFFmpeg(
 
     it("supports loop control", async () => {
       const output = tmp("gif-loop1.gif");
-      const result = await ffmpeg.gif()
+      const result = await ffmpeg
+        .gif()
         .input(FIXTURES.videoShort)
         .fps(10)
         .loop(1)
@@ -86,7 +90,12 @@ describeWithFFmpeg(
 
     it("tryExecute() returns success result", async () => {
       const output = tmp("gif-try-success.gif");
-      const result = await ffmpeg.gif().input(FIXTURES.videoShort).fps(10).output(output).tryExecute();
+      const result = await ffmpeg
+        .gif()
+        .input(FIXTURES.videoShort)
+        .fps(10)
+        .output(output)
+        .tryExecute();
 
       expect(result.success).toBe(true);
       if (result.success) {

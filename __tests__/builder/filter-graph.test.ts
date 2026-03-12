@@ -1,14 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  between,
-  clamp,
-  easing,
-  enable,
-  ifExpr,
-  lerp,
-  timeRange,
-} from "../../src/filters/helpers.ts";
-import {
+  acompressor,
   acrossfade,
   adelay,
   afade,
@@ -16,9 +8,8 @@ import {
   agate,
   alimiter,
   amix,
-  acompressor,
-  areverse,
   aresample,
+  areverse,
   atempo,
   bass,
   equalizer,
@@ -29,11 +20,16 @@ import {
   treble,
   volume,
 } from "../../src/filters/audio.ts";
+import { chain, filter, filterGraph } from "../../src/filters/graph.ts";
 import {
-  chain,
-  filter,
-  filterGraph,
-} from "../../src/filters/graph.ts";
+  between,
+  clamp,
+  easing,
+  enable,
+  ifExpr,
+  lerp,
+  timeRange,
+} from "../../src/filters/helpers.ts";
 import {
   chromakey,
   colorkey,
@@ -407,10 +403,7 @@ describe("FilterGraphBuilder", () => {
   });
 
   it("multiple audio filters → comma-joined -af", () => {
-    const args = filterGraph()
-      .audioFilter("loudnorm")
-      .audioFilter("afade=t=out:d=2")
-      .toArgs();
+    const args = filterGraph().audioFilter("loudnorm").audioFilter("afade=t=out:d=2").toArgs();
     expect(args).toEqual(["-af", "loudnorm,afade=t=out:d=2"]);
   });
 
@@ -472,10 +465,7 @@ describe("FilterGraphBuilder", () => {
   });
 
   it("complex mode ignores simple video/audio filters in toArgs", () => {
-    const args = filterGraph()
-      .videoFilter("scale=1920:-2")
-      .complex("[0:v]hflip[v0]")
-      .toArgs();
+    const args = filterGraph().videoFilter("scale=1920:-2").complex("[0:v]hflip[v0]").toArgs();
     // complex mode: should not include -vf
     expect(args).not.toContain("-vf");
     expect(args).toContain("-filter_complex");

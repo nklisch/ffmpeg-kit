@@ -1,5 +1,5 @@
-import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { Timestamp } from "../types/base.ts";
+import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 
 /**
  * Parse a timecode string or number into seconds.
@@ -14,7 +14,13 @@ import type { Timestamp } from "../types/base.ts";
  * Throws on invalid format or negative result.
  */
 function timecodeError(message: string): FFmpegError {
-  return new FFmpegError({ code: FFmpegErrorCode.INVALID_INPUT, message, stderr: "", command: [], exitCode: 0 });
+  return new FFmpegError({
+    code: FFmpegErrorCode.INVALID_INPUT,
+    message,
+    stderr: "",
+    command: [],
+    exitCode: 0,
+  });
 }
 
 export function parseTimecode(timecode: Timestamp, durationSeconds?: number): number {

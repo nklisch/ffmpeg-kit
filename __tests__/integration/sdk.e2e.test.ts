@@ -7,7 +7,12 @@ const ffmpeg = createFFmpeg();
 describeWithFFmpeg("SDK instance E2E", () => {
   it("extract produces valid output", async () => {
     const output = tmp("sdk-extract.png");
-    const result = await ffmpeg.extract().input(FIXTURES.videoShort).timestamp(0.5).output(output).execute();
+    const result = await ffmpeg
+      .extract()
+      .input(FIXTURES.videoShort)
+      .timestamp(0.5)
+      .output(output)
+      .execute();
     expectFileExists(output);
     expect(result.width).toBeGreaterThan(0);
   });

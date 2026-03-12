@@ -1,7 +1,29 @@
 {
   "name": "ffmpeg-kit",
-  "version": "0.0.0",
-  "description": "TypeScript SDK wrapping the FFmpeg CLI",
+  "version": "0.1.0",
+  "description": "TypeScript SDK wrapping the FFmpeg CLI — fluent builders, hardware acceleration, probe caching, batch processing",
+  "license": "MIT",
+  "author": "nklisch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nklisch/ffmpeg-kit.git"
+  },
+  "homepage": "https://nklisch.github.io/ffmpeg-kit",
+  "bugs": {
+    "url": "https://github.com/nklisch/ffmpeg-kit/issues"
+  },
+  "keywords": [
+    "ffmpeg",
+    "ffprobe",
+    "video",
+    "audio",
+    "transcoding",
+    "streaming",
+    "hls",
+    "gif",
+    "typescript",
+    "sdk"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -17,6 +39,7 @@
   },
   "sideEffects": false,
   "scripts": {
+    "prepublishOnly": "pnpm build",
     "build": "tsup",
     "check": "biome check . && tsc --noEmit",
     "lint": "biome check .",

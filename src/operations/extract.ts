@@ -4,7 +4,13 @@ import type { ExecuteOptions } from "../types/options.ts";
 import type { VideoStreamInfo } from "../types/probe.ts";
 import type { ExtractResult, OperationResult } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
-import { defaultDeps, missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
+import {
+  defaultDeps,
+  missingFieldError,
+  probeOutput,
+  resolveDimensions,
+  wrapTryExecute,
+} from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface ExtractState {
@@ -167,7 +173,10 @@ export function extract(deps: BuilderDeps = defaultDeps): ExtractBuilder {
       const args = buildArgs(state, resolvedTimestamp);
       await deps.execute(args, options);
 
-      const { outputPath, sizeBytes, probeResult } = await probeOutput(state.outputPath, deps.probe);
+      const { outputPath, sizeBytes, probeResult } = await probeOutput(
+        state.outputPath,
+        deps.probe,
+      );
       const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
 
       return {

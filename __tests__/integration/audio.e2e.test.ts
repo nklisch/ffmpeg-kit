@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { createFFmpeg } from "../../src/sdk.ts";
+import { expect, it } from "vitest";
 import { probe } from "../../src/core/probe.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
 import {
-  FIXTURES,
   describeWithFFmpeg,
   expectDurationClose,
   expectFileExists,
+  FIXTURES,
   tmp,
 } from "../helpers.ts";
 
@@ -16,7 +16,8 @@ describeWithFFmpeg("audio()", () => {
 
   it("extracts audio from video as WAV", async () => {
     const out = tmp("audio-extract.wav");
-    const result = await ffmpeg.audio()
+    const result = await ffmpeg
+      .audio()
       .input(FIXTURES.videoH264)
       .extractAudio()
       .output(out)
@@ -35,7 +36,8 @@ describeWithFFmpeg("audio()", () => {
 
   it("extracts audio with codec and bitrate", async () => {
     const out = tmp("audio-extract.mp3");
-    const result = await ffmpeg.audio()
+    const _result = await ffmpeg
+      .audio()
       .input(FIXTURES.videoH264)
       .extractAudio({ codec: "libmp3lame", bitrate: "192k" })
       .output(out)
@@ -52,7 +54,8 @@ describeWithFFmpeg("audio()", () => {
 
   it("mixes two audio sources", async () => {
     const out = tmp("audio-mix.wav");
-    const result = await ffmpeg.audio()
+    const _result = await ffmpeg
+      .audio()
       .input(FIXTURES.audioSpeech)
       .addInput(FIXTURES.audioMusic, { volume: 0.3 })
       .output(out)
@@ -69,11 +72,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("adjusts volume with dB string", async () => {
     const out = tmp("audio-volume.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .codec("pcm_s16le")
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).codec("pcm_s16le").output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -84,7 +83,8 @@ describeWithFFmpeg("audio()", () => {
 
   it("applies sidechain ducking", async () => {
     const out = tmp("audio-duck.wav");
-    const result = await ffmpeg.audio()
+    const _result = await ffmpeg
+      .audio()
       .input(FIXTURES.audioMusic)
       .addInput(FIXTURES.audioSpeech)
       .duck({ trigger: 1, amount: -12 })
@@ -100,7 +100,8 @@ describeWithFFmpeg("audio()", () => {
 
   it("normalizes loudness (single-pass) to target LUFS", async () => {
     const out = tmp("audio-norm-single.wav");
-    const result = await ffmpeg.audio()
+    const result = await ffmpeg
+      .audio()
       .input(FIXTURES.audioSpeech)
       .normalize({ targetLufs: -14 })
       .output(out)
@@ -112,7 +113,8 @@ describeWithFFmpeg("audio()", () => {
 
   it("normalizes loudness (two-pass) to target LUFS", async () => {
     const out = tmp("audio-norm-twopass.wav");
-    const result = await ffmpeg.audio()
+    const result = await ffmpeg
+      .audio()
       .input(FIXTURES.audioSpeech)
       .normalize({ targetLufs: -14, twoPass: true })
       .output(out)
@@ -126,11 +128,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("applies fade in", async () => {
     const out = tmp("audio-fadein.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .fadeIn({ duration: 1 })
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).fadeIn({ duration: 1 }).output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -139,11 +137,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("applies fade out", async () => {
     const out = tmp("audio-fadeout.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .fadeOut({ duration: 1 })
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).fadeOut({ duration: 1 }).output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -154,11 +148,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("changes tempo 2x", async () => {
     const out = tmp("audio-tempo2x.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .tempo(2)
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).tempo(2).output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -170,11 +160,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("applies highpass filter", async () => {
     const out = tmp("audio-highpass.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .highpass(200)
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).highpass(200).output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -183,11 +169,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("applies lowpass filter", async () => {
     const out = tmp("audio-lowpass.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .lowpass(8000)
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).lowpass(8000).output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -196,11 +178,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("resamples to different sample rate", async () => {
     const out = tmp("audio-resample.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .resample(44100)
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).resample(44100).output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -210,11 +188,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("converts channel count", async () => {
     const out = tmp("audio-channels.wav");
-    await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .channels(2)
-      .output(out)
-      .execute();
+    await ffmpeg.audio().input(FIXTURES.audioSpeech).channels(2).output(out).execute();
 
     expectFileExists(out);
     const probeResult = await probe(out);
@@ -225,7 +199,8 @@ describeWithFFmpeg("audio()", () => {
   // --- Silence detection ---
 
   it("detects silence ranges", async () => {
-    const result = await ffmpeg.audio()
+    const result = await ffmpeg
+      .audio()
       .input(FIXTURES.audioSilence)
       .detectSilence({ threshold: -40, duration: 0.5 })
       .execute();
@@ -243,10 +218,7 @@ describeWithFFmpeg("audio()", () => {
 
   it("tryExecute returns success on valid input", async () => {
     const out = tmp("audio-try-success.wav");
-    const result = await ffmpeg.audio()
-      .input(FIXTURES.audioSpeech)
-      .output(out)
-      .tryExecute();
+    const result = await ffmpeg.audio().input(FIXTURES.audioSpeech).output(out).tryExecute();
     expect(result.success).toBe(true);
     if (result.success) {
       expectFileExists(result.data.outputPath);
@@ -254,7 +226,8 @@ describeWithFFmpeg("audio()", () => {
   });
 
   it("tryExecute returns failure on invalid input", async () => {
-    const result = await ffmpeg.audio()
+    const result = await ffmpeg
+      .audio()
       .input("nonexistent-file.wav")
       .output(tmp("audio-try-fail.wav"))
       .tryExecute();

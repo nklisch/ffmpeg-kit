@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { createFFmpeg } from "../../src/sdk.ts";
-import { FIXTURES, describeWithFFmpeg, tmp } from "../helpers.ts";
 import { statSync } from "node:fs";
+import { expect, it } from "vitest";
+import { createFFmpeg } from "../../src/sdk.ts";
+import { describeWithFFmpeg, FIXTURES, tmp } from "../helpers.ts";
 
 const ffmpeg = createFFmpeg();
 
@@ -20,7 +20,7 @@ describeWithFFmpeg("estimateSize E2E", () => {
 
     // Encode with those bitrates
     await ffmpeg.compress(FIXTURES.videoShort, output, { quality: "economy" });
-    const actualBytes = statSync(output).size;
+    const _actualBytes = statSync(output).size;
 
     // Estimate should be in the same order of magnitude (within 50x for a rough test)
     // These are rough estimates since quality tier != exact bitrate

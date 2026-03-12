@@ -1,10 +1,10 @@
-import { join } from "node:path";
 import { statSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { ExecuteOptions } from "../types/options.ts";
-import type { OperationResult } from "../types/results.ts";
 import type { ProbeResult } from "../types/probe.ts";
+import type { OperationResult } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
 
 export function missingFieldError(field: string): FFmpegError {

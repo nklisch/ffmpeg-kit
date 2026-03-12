@@ -1,14 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { createFFmpeg } from "../../src/sdk.ts";
-import {
-  FIXTURES,
-  describeWithFFmpeg,
-  expectCodec,
-  expectDurationClose,
-  expectFileExists,
-  tmp,
-} from "../helpers.ts";
+import { expect, it } from "vitest";
 import { probe } from "../../src/core/probe.ts";
+import { createFFmpeg } from "../../src/sdk.ts";
+import { describeWithFFmpeg, expectCodec, expectFileExists, FIXTURES, tmp } from "../helpers.ts";
 
 const ffmpeg = createFFmpeg();
 
@@ -61,7 +54,7 @@ describeWithFFmpeg("imageToVideo", () => {
 describeWithFFmpeg("resize", () => {
   it("produces video with correct dimensions", async () => {
     const output = tmp("resize-out.mp4");
-    const result = await ffmpeg.resize(FIXTURES.videoH264, output, { width: 320, height: 180 });
+    const _result = await ffmpeg.resize(FIXTURES.videoH264, output, { width: 320, height: 180 });
     expectFileExists(output);
     const probeResult = await probe(output);
     const videoStream = probeResult.streams.find((s) => s.type === "video");

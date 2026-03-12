@@ -14,7 +14,14 @@ import type { VideoStreamInfo } from "../types/probe.ts";
 import type { OperationResult, TransformResult } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
 import { buildAtempoChain } from "../util/audio-filters.ts";
-import { DEFAULT_VIDEO_CODEC_ARGS, defaultDeps, missingFieldError, probeOutput, resolveDimensions, wrapTryExecute } from "../util/builder-helpers.ts";
+import {
+  DEFAULT_VIDEO_CODEC_ARGS,
+  defaultDeps,
+  missingFieldError,
+  probeOutput,
+  resolveDimensions,
+  wrapTryExecute,
+} from "../util/builder-helpers.ts";
 import { parseTimecode } from "../util/timecode.ts";
 
 interface TransformState {
@@ -586,7 +593,10 @@ export function transform(deps: BuilderDeps = defaultDeps): TransformBuilder {
       const args = buildArgs(state, resolved, kenBurnsDimensions, addLoop);
       await deps.execute(args, options);
 
-      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(state.outputPath, deps.probe);
+      const { outputPath, duration, sizeBytes, probeResult } = await probeOutput(
+        state.outputPath,
+        deps.probe,
+      );
       const videoStream = probeResult.streams.find((s): s is VideoStreamInfo => s.type === "video");
 
       return {

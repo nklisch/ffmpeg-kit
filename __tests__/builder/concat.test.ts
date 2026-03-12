@@ -53,12 +53,7 @@ describe("concat()", () => {
 
   it("throws in toArgs() when fillSilence is set (needs probing)", () => {
     expect(() =>
-      concat()
-        .addClip("a.mp4")
-        .addClip("b.mp4")
-        .fillSilence()
-        .output("out.mp4")
-        .toArgs(),
+      concat().addClip("a.mp4").addClip("b.mp4").fillSilence().output("out.mp4").toArgs(),
     ).toThrow(/execute/);
   });
 
@@ -86,9 +81,7 @@ describe("concat()", () => {
   // --- Transition assignment ---
 
   it("transition() throws when called before addClip()", () => {
-    expect(() =>
-      concat().transition({ type: "fade" }),
-    ).toThrow(/after addClip/);
+    expect(() => concat().transition({ type: "fade" })).toThrow(/after addClip/);
   });
 
   it("transition() sets transitionAfter on the last added clip", () => {
@@ -119,12 +112,7 @@ describe("concat()", () => {
 
   it("falls back to filter_complex when normalizeFps is set", () => {
     expect(() =>
-      concat()
-        .addClip("a.mp4")
-        .addClip("b.mp4")
-        .normalizeFps(30)
-        .output("out.mp4")
-        .toArgs(),
+      concat().addClip("a.mp4").addClip("b.mp4").normalizeFps(30).output("out.mp4").toArgs(),
     ).toThrow(/execute/);
   });
 });

@@ -55,7 +55,8 @@ export async function thumbnailSheet(
     }
 
     // Compute frame numbers from timestamps using probe fps
-    const fps = videoStream?.type === "video" ? (videoStream.avgFrameRate || videoStream.frameRate) : 25;
+    const fps =
+      videoStream?.type === "video" ? videoStream.avgFrameRate || videoStream.frameRate : 25;
     const frameNums = timestamps.map((ts) => Math.round(ts * fps));
     const selectExpr = frameNums.map((n) => `eq(n,${n})`).join("+");
     filterStr = `select='${selectExpr}',scale=${width}:-2,tile=${columns}x${rows}`;

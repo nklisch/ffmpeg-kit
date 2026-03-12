@@ -52,11 +52,7 @@ describe("audio()", () => {
   });
 
   it("produces equalizer filter", () => {
-    const args = audio()
-      .input("a.wav")
-      .eq({ frequency: 1000, gain: 6 })
-      .output("out.wav")
-      .toArgs();
+    const args = audio().input("a.wav").eq({ frequency: 1000, gain: 6 }).output("out.wav").toArgs();
     const af = args[args.indexOf("-af") + 1];
     expect(af).toContain("equalizer=f=1000:width_type=q:w=1:g=6");
   });
@@ -94,18 +90,18 @@ describe("audio()", () => {
   });
 
   it("produces loudnorm filter", () => {
-    const args = audio()
-      .input("a.wav")
-      .normalize({ targetLufs: -14 })
-      .output("out.wav")
-      .toArgs();
+    const args = audio().input("a.wav").normalize({ targetLufs: -14 }).output("out.wav").toArgs();
     const af = args[args.indexOf("-af") + 1];
     expect(af).toContain("loudnorm=I=-14:TP=-1.5:LRA=11");
   });
 
   it("throws in toArgs() for normalize({ twoPass: true })", () => {
     expect(() =>
-      audio().input("a.wav").normalize({ targetLufs: -14, twoPass: true }).output("out.wav").toArgs(),
+      audio()
+        .input("a.wav")
+        .normalize({ targetLufs: -14, twoPass: true })
+        .output("out.wav")
+        .toArgs(),
     ).toThrow(/two-pass/i);
   });
 
@@ -203,12 +199,7 @@ describe("audio()", () => {
   });
 
   it("produces sample rate and channels args", () => {
-    const args = audio()
-      .input("a.wav")
-      .sampleRate(44100)
-      .channels(1)
-      .output("out.wav")
-      .toArgs();
+    const args = audio().input("a.wav").sampleRate(44100).channels(1).output("out.wav").toArgs();
     expect(args).toContain("-ar");
     expect(args).toContain("44100");
     expect(args).toContain("-ac");
@@ -216,11 +207,7 @@ describe("audio()", () => {
   });
 
   it("produces channel layout arg", () => {
-    const args = audio()
-      .input("a.wav")
-      .channelLayout("mono")
-      .output("out.wav")
-      .toArgs();
+    const args = audio().input("a.wav").channelLayout("mono").output("out.wav").toArgs();
     expect(args).toContain("-channel_layout");
     expect(args).toContain("mono");
   });
