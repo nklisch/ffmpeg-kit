@@ -39,6 +39,7 @@
   },
   "sideEffects": false,
   "scripts": {
+    "release": "node scripts/bump-version.mjs",
     "prepublishOnly": "pnpm build",
     "build": "tsup",
     "check": "biome check . && tsc --noEmit",
