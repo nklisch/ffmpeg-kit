@@ -50,7 +50,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "vitest run --project e2e",
-    "test:unit": "vitest run --project unit"
+    "test:unit": "vitest run --project unit",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
     "zod": "^4.0.0"
@@ -60,7 +63,8 @@
     "@types/node": "^22.0.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "vitepress": "^1.6.3"
   },
   "peerDependencies": {
     "pino": ">=9.0.0"

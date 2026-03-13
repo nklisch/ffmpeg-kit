@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Film frame outline -->
+  <rect x="2" y="4" width="28" height="24" rx="3" fill="#10B981"/>
+  <!-- Sprocket holes top -->
+  <rect x="5" y="4" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="10" y="4" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="15" y="4" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="20" y="4" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="25" y="4" width="3" height="4" rx="1" fill="#065F46"/>
+  <!-- Sprocket holes bottom -->
+  <rect x="5" y="24" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="10" y="24" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="15" y="24" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="20" y="24" width="3" height="4" rx="1" fill="#065F46"/>
+  <rect x="25" y="24" width="3" height="4" rx="1" fill="#065F46"/>
+  <!-- Play triangle -->
+  <path d="M12 11 L22 16 L12 21 Z" fill="white"/>
+</svg>
