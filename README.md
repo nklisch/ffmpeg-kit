@@ -3,6 +3,8 @@
 TypeScript SDK wrapping the FFmpeg CLI. Fluent builders, hardware acceleration,
 probe caching, batch processing.
 
+**[Documentation](https://ffmpegkit.dev)** | **[GitHub](https://github.com/nklisch/ffmpeg-kit)**
+
 ## Features
 
 - **Fluent builders** for all FFmpeg operations — extract, transform, audio,

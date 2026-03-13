@@ -4,7 +4,7 @@ export default defineConfig({
   title: "ffmpeg-kit",
   description:
     "Type-safe TypeScript SDK for FFmpeg. Fluent builders, hardware acceleration, probe caching.",
-  base: "/ffmpeg-kit/",
+  base: "/",
   srcExclude: [
     "designs/**",
     "ARCH.md",
@@ -15,7 +15,7 @@ export default defineConfig({
     "design-phase-*.md",
   ],
   head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/ffmpeg-kit/logo.svg" }],
+    ["link", { rel: "icon", type: "image/svg+xml", href: "/logo.svg" }],
     ["meta", { name: "theme-color", content: "#10B981" }],
     [
       "meta",
