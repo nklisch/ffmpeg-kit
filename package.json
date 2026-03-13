@@ -1,6 +1,6 @@
 {
   "name": "ffmpeg-kit",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "TypeScript SDK wrapping the FFmpeg CLI — fluent builders, hardware acceleration, probe caching, batch processing",
   "license": "MIT",
   "author": "nklisch",
