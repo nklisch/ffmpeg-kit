@@ -39,7 +39,7 @@ export default defineConfig({
       { text: "Operations", link: "/operations/extract" },
       { text: "API Reference", link: "/api/core" },
       {
-        text: "v0.1.0",
+        text: "v0.1.4",
         items: [
           { text: "Changelog", link: "/changelog" },
           { text: "GitHub", link: "https://github.com/nklisch/ffmpeg-kit" },

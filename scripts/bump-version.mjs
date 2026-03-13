@@ -7,7 +7,6 @@
  */
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -42,6 +41,12 @@ console.log(`${pkg.version} → ${next}`);
 pkg.version = next;
 writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 console.log("  updated package.json");
+
+const vitepressConfigPath = resolve(root, "docs/.vitepress/config.ts");
+const configSrc = readFileSync(vitepressConfigPath, "utf8");
+const updatedConfig = configSrc.replace(/text: "v\d+\.\d+\.\d+"/, `text: "v${next}"`);
+writeFileSync(vitepressConfigPath, updatedConfig);
+console.log("  updated docs/.vitepress/config.ts");
 
 const tag = `v${next}`;
 const run = (cmd) => execSync(cmd, { stdio: "inherit", cwd: root });
