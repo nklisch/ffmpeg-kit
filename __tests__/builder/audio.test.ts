@@ -235,11 +235,7 @@ describe("audio()", () => {
   // --- Multi-input (addInput / duck) ---
 
   it("produces filter_complex with amix for addInput()", () => {
-    const args = audio()
-      .input("a.wav")
-      .addInput("b.wav")
-      .output("out.wav")
-      .toArgs();
+    const args = audio().input("a.wav").addInput("b.wav").output("out.wav").toArgs();
     expect(args).toContain("-filter_complex");
     const fcIdx = args.indexOf("-filter_complex");
     const fc = args[fcIdx + 1];

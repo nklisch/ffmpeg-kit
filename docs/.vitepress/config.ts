@@ -15,6 +15,12 @@ export default defineConfig({
     "design-phase-*.md",
   ],
   head: [
+    ["script", { async: "", src: "https://www.googletagmanager.com/gtag/js?id=G-9G2GF3HBBB" }],
+    [
+      "script",
+      {},
+      "window.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('js', new Date());\ngtag('config', 'G-9G2GF3HBBB');",
+    ],
     ["link", { rel: "icon", type: "image/svg+xml", href: "/logo.svg" }],
     ["meta", { name: "theme-color", content: "#10B981" }],
     [
