@@ -106,7 +106,7 @@ Update metadata fields to match npm publish requirements. Keep the name `ffmpeg-
 ```text
 MIT License
 
-Copyright (c) 2025 nklisch
+Copyright (c) 2026 nklisch
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
