@@ -1,4 +1,8 @@
 
+## Version Bumping
+- Use `pnpm version patch`, `pnpm version minor`, or `pnpm version major` to bump versions
+- Do NOT manually edit the version in package.json
+
 ## Agent Tracker
 - Project ID: 71af57c3-c873-4562-a254-40baeb64a7e2
 - Project Name: ffmpeg-kit
