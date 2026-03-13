@@ -53,4 +53,28 @@ describe("parseTimecode", () => {
   it("handles large values", () => {
     expect(parseTimecode("99:59:59")).toBe(99 * 3600 + 59 * 60 + 59);
   });
+
+  it("throws for negative number", () => {
+    expect(() => parseTimecode(-5)).toThrow();
+  });
+
+  it("returns 0 for 0% with duration", () => {
+    expect(parseTimecode("0%", 120)).toBe(0);
+  });
+
+  it("throws for invalid percentage string", () => {
+    expect(() => parseTimecode("abc%")).toThrow();
+  });
+
+  it("returns 0 for numeric zero", () => {
+    expect(parseTimecode(0)).toBe(0);
+  });
+
+  it("throws for negative percentage result", () => {
+    expect(() => parseTimecode("-10%", 100)).toThrow();
+  });
+
+  it("parses whitespace-padded timecode", () => {
+    expect(parseTimecode("  30  ")).toBe(30);
+  });
 });

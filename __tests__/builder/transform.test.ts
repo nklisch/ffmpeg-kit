@@ -371,4 +371,60 @@ describe("TransformBuilder", () => {
   it("throws for unsupported rotation angle", () => {
     expect(() => transform().input("v.mp4").rotate(45).output("o.mp4").toArgs()).toThrow();
   });
+
+  it("throws for stabilize() (not yet implemented)", () => {
+    expect(() => transform().input("v.mp4").stabilize().output("o.mp4").toArgs()).toThrow(
+      /not yet implemented/,
+    );
+  });
+
+  it("throws for crop() without aspectRatio or dimensions", () => {
+    expect(() => transform().input("v.mp4").crop({}).output("o.mp4").toArgs()).toThrow(
+      /aspectRatio or explicit width/,
+    );
+  });
+
+  it("throws for kenBurns() without outputSize() in toArgs()", () => {
+    expect(() =>
+      transform()
+        .input("img.jpg")
+        .kenBurns({
+          duration: 3,
+          startZoom: 1,
+          endZoom: 1.5,
+          startPosition: "center",
+          endPosition: "center",
+        })
+        .output("o.mp4")
+        .toArgs(),
+    ).toThrow(/outputSize/);
+  });
+
+  it("produces framerate filter for interpolate with framerate method", () => {
+    const args = transform().input("v.mp4").interpolate(60, "framerate").output("o.mp4").toArgs();
+    const vfIdx = args.indexOf("-vf");
+    expect(args[vfIdx + 1]).toContain("framerate=fps=60");
+    expect(args[vfIdx + 1]).not.toContain("minterpolate");
+  });
+
+  it("produces pad with custom color", () => {
+    const args = transform()
+      .input("v.mp4")
+      .pad({ width: 1920, height: 1080 }, "red")
+      .output("o.mp4")
+      .toArgs();
+    const vfIdx = args.indexOf("-vf");
+    expect(args[vfIdx + 1]).toContain("pad=1920:1080:(ow-iw)/2:(oh-ih)/2:red");
+  });
+
+  it("produces crop=iw:ih for width-only crop", () => {
+    const args = transform().input("v.mp4").crop({ width: 320 }).output("o.mp4").toArgs();
+    const vfIdx = args.indexOf("-vf");
+    expect(args[vfIdx + 1]).toContain("crop=320:ih");
+  });
+
+  it("resolves HH:MM:SS timecodes for trimStart", () => {
+    const args = transform().input("v.mp4").trimStart("00:01:00").output("o.mp4").toArgs();
+    expect(args).toContain("60");
+  });
 });

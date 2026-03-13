@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildBaseArgs, buildFilter, escapeFilterValue, flattenArgs } from "../../src/core/args.ts";
+import {
+  buildBaseArgs,
+  buildFilter,
+  escapeDrawtext,
+  escapeFilterValue,
+  escapeSubtitlePath,
+  flattenArgs,
+} from "../../src/core/args.ts";
 
 describe("escapeFilterValue", () => {
   it("escapes apostrophe", () => {
@@ -25,6 +32,84 @@ describe("escapeFilterValue", () => {
   it("leaves plain strings unchanged", () => {
     expect(escapeFilterValue("hello world")).toBe("hello world");
   });
+
+  it("returns empty string for empty input", () => {
+    expect(escapeFilterValue("")).toBe("");
+  });
+
+  it("escapes multiple special characters in sequence", () => {
+    expect(escapeFilterValue("a=b:c;d")).toBe("a\\=b\\:c\\;d");
+  });
+});
+
+describe("escapeDrawtext", () => {
+  it("quadruple-escapes backslashes", () => {
+    expect(escapeDrawtext("a\\b")).toBe("a\\\\\\\\b");
+  });
+
+  it("escapes colons", () => {
+    expect(escapeDrawtext("12:30")).toBe("12\\:30");
+  });
+
+  it("escapes apostrophes", () => {
+    expect(escapeDrawtext("it's")).toBe("it'\\\\\\''s");
+  });
+
+  it("escapes semicolons", () => {
+    expect(escapeDrawtext("a;b")).toBe("a\\;b");
+  });
+
+  it("escapes brackets", () => {
+    expect(escapeDrawtext("[tag]")).toBe("\\[tag\\]");
+  });
+
+  it("leaves plain strings unchanged", () => {
+    expect(escapeDrawtext("hello world")).toBe("hello world");
+  });
+
+  it("returns empty string for empty input", () => {
+    expect(escapeDrawtext("")).toBe("");
+  });
+
+  it("handles combined special characters", () => {
+    const result = escapeDrawtext("time: 12:30 [PM]");
+    expect(result).toContain("\\:");
+    expect(result).toContain("\\[");
+    expect(result).toContain("\\]");
+  });
+});
+
+describe("escapeSubtitlePath", () => {
+  it("converts backslashes to forward slashes and escapes colons", () => {
+    // Note: colons are also escaped, so C: becomes C\:
+    expect(escapeSubtitlePath("C:\\Users\\test\\subs.srt")).toBe("C\\:/Users/test/subs.srt");
+  });
+
+  it("escapes colons", () => {
+    expect(escapeSubtitlePath("/path/to:file.srt")).toBe("/path/to\\:file.srt");
+  });
+
+  it("escapes apostrophes", () => {
+    expect(escapeSubtitlePath("it's.srt")).toBe("it\\'s.srt");
+  });
+
+  it("escapes brackets", () => {
+    expect(escapeSubtitlePath("[subs].srt")).toBe("\\[subs\\].srt");
+  });
+
+  it("leaves plain Unix paths unchanged", () => {
+    expect(escapeSubtitlePath("/home/user/subs.srt")).toBe("/home/user/subs.srt");
+  });
+
+  it("returns empty string for empty input", () => {
+    expect(escapeSubtitlePath("")).toBe("");
+  });
+
+  it("handles Windows paths with drive letter", () => {
+    const result = escapeSubtitlePath("C:\\video\\subs.srt");
+    expect(result).not.toContain("\\\\");
+    expect(result).toContain("/");
+  });
 });
 
 describe("buildFilter", () => {
@@ -46,6 +131,14 @@ describe("buildFilter", () => {
 
   it("includes true boolean option as key only", () => {
     expect(buildFilter("test", { flag: true })).toBe("test=flag");
+  });
+
+  it("returns name only for empty object options", () => {
+    expect(buildFilter("anull", {})).toBe("anull");
+  });
+
+  it("returns name only when all options are false", () => {
+    expect(buildFilter("test", { a: false, b: false })).toBe("test");
   });
 });
 
@@ -87,6 +180,16 @@ describe("buildBaseArgs", () => {
   it("handles multiple inputs", () => {
     const args = buildBaseArgs({ inputs: ["a.mp4", "b.mp4"] });
     expect(args.filter((a) => a === "-i").length).toBe(2);
+  });
+
+  it("produces only -y for empty options", () => {
+    const args = buildBaseArgs({});
+    expect(args).toEqual(["-y"]);
+  });
+
+  it("produces only -y for empty inputs array", () => {
+    const args = buildBaseArgs({ inputs: [] });
+    expect(args).toEqual(["-y"]);
   });
 });
 

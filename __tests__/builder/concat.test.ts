@@ -115,4 +115,29 @@ describe("concat()", () => {
       concat().addClip("a.mp4").addClip("b.mp4").normalizeFps(30).output("out.mp4").toArgs(),
     ).toThrow(/execute/);
   });
+
+  it("falls back to filter_complex when defaultTransition is set", () => {
+    expect(() =>
+      concat()
+        .addClip("a.mp4")
+        .addClip("b.mp4")
+        .defaultTransition({ type: "fade", duration: 0.5 })
+        .output("out.mp4")
+        .toArgs(),
+    ).toThrow(/execute/);
+  });
+
+  it("audioCrossfade stores duration for use during execute()", () => {
+    // audioCrossfade alone doesn't trigger filter_complex path,
+    // but combined with defaultTransition it does
+    expect(() =>
+      concat()
+        .addClip("a.mp4")
+        .addClip("b.mp4")
+        .defaultTransition({ type: "fade", duration: 0.5 })
+        .audioCrossfade(0.5)
+        .output("out.mp4")
+        .toArgs(),
+    ).toThrow(/execute/);
+  });
 });

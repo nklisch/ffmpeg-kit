@@ -273,4 +273,28 @@ describe("exportVideo()", () => {
     expect(args).toContain("-c:v");
     expect(args).toContain("libvpx-vp9");
   });
+
+  // --- Chapters (only available via execute, not toArgs) ---
+
+  it("chapters() does not add chapter args in toArgs() (requires execute for temp file)", () => {
+    const args = exportVideo()
+      .input("in.mp4")
+      .chapters([
+        { start: 0, end: 60, title: "Intro" },
+        { start: 60, end: 120, title: "Main" },
+      ])
+      .output("out.mp4")
+      .toArgs();
+    // Chapters require a temp file written during execute(), so toArgs() should not include them
+    expect(args).not.toContain("-map_metadata");
+  });
+
+  // --- audioSampleRate as string in args ---
+
+  it("produces -ar as string value from audioSampleRate()", () => {
+    const args = exportVideo().input("in.mp4").audioSampleRate(48000).output("out.mp4").toArgs();
+    const arIdx = args.indexOf("-ar");
+    expect(arIdx).toBeGreaterThan(-1);
+    expect(args[arIdx + 1]).toBe("48000");
+  });
 });

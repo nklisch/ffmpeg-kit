@@ -212,6 +212,81 @@ describe("audio()", () => {
     expect(args).toContain("mono");
   });
 
+  // --- Deess ---
+
+  it("produces equalizer-based deess filter", () => {
+    const args = audio().input("a.wav").deess().output("out.wav").toArgs();
+    const af = args[args.indexOf("-af") + 1];
+    expect(af).toContain("equalizer=f=6000");
+    expect(af).toContain("g=-6");
+  });
+
+  it("produces deess filter with custom frequency and intensity", () => {
+    const args = audio()
+      .input("a.wav")
+      .deess({ frequency: 8000, intensity: 10 })
+      .output("out.wav")
+      .toArgs();
+    const af = args[args.indexOf("-af") + 1];
+    expect(af).toContain("equalizer=f=8000");
+    expect(af).toContain("g=-10");
+  });
+
+  // --- Multi-input (addInput / duck) ---
+
+  it("produces filter_complex with amix for addInput()", () => {
+    const args = audio()
+      .input("a.wav")
+      .addInput("b.wav")
+      .output("out.wav")
+      .toArgs();
+    expect(args).toContain("-filter_complex");
+    const fcIdx = args.indexOf("-filter_complex");
+    const fc = args[fcIdx + 1];
+    expect(fc).toContain("amix=inputs=2");
+    expect(fc).toContain("duration=longest");
+    expect(args).toContain("-map");
+    expect(args).toContain("[out]");
+  });
+
+  it("produces filter_complex with volume and delay for addInput config", () => {
+    const args = audio()
+      .input("a.wav")
+      .addInput("b.wav", { volume: 0.5, delay: 1000 })
+      .output("out.wav")
+      .toArgs();
+    const fcIdx = args.indexOf("-filter_complex");
+    const fc = args[fcIdx + 1];
+    expect(fc).toContain("volume=0.5");
+    expect(fc).toContain("adelay=1000|1000");
+  });
+
+  it("produces sidechaincompress for duck()", () => {
+    const args = audio()
+      .input("music.wav")
+      .addInput("voice.wav")
+      .duck({ trigger: 1, amount: 12 })
+      .output("out.wav")
+      .toArgs();
+    expect(args).toContain("-filter_complex");
+    const fcIdx = args.indexOf("-filter_complex");
+    const fc = args[fcIdx + 1];
+    expect(fc).toContain("sidechaincompress");
+    expect(fc).toContain("[0:a][1:a]");
+  });
+
+  // --- Denoise with anlmdn method ---
+
+  it("produces anlmdn filter for denoise with anlmdn method", () => {
+    const args = audio()
+      .input("a.wav")
+      .denoise({ method: "anlmdn", amount: 2 })
+      .output("out.wav")
+      .toArgs();
+    const af = args[args.indexOf("-af") + 1];
+    expect(af).toContain("anlmdn=s=2");
+  });
+
   // --- Silence detection mode ---
 
   it("produces silencedetect filter with -f null output for detectSilence", () => {
