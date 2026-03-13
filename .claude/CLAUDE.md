@@ -1,6 +1,6 @@
 
 ## Version Bumping
-- Use `pnpm version patch`, `pnpm version minor`, or `pnpm version major` to bump versions
+- Use `pnpm release patch`, `pnpm release minor`, or `pnpm release major` to bump, commit, tag, and push
 - Do NOT manually edit the version in package.json
 
 ## Agent Tracker
