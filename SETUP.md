@@ -2,12 +2,14 @@
 
 Tasks to complete before the first npm publish.
 
-## 1. Add NPM_TOKEN to GitHub
+## 1. Configure npm Trusted Publishing
 
-1. Go to [npmjs.com](https://www.npmjs.com) → Account → Access Tokens
-2. Generate a new token — type: **Automation**
-3. Go to GitHub repo → Settings → Secrets and variables → Actions
-4. Add secret named `NPM_TOKEN` with the token value
+1. Go to [npmjs.com](https://www.npmjs.com) → Package → Settings → Publishing access → Trusted Publishers
+2. Add GitHub Actions as a trusted publisher:
+   - **Repository owner**: `nklisch`
+   - **Repository**: `ffmpeg-kit`
+   - **Workflow**: `release.yml`
+3. No secrets or tokens needed — GitHub OIDC handles authentication
 
 ## 2. Enable GitHub Pages
 

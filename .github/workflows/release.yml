@@ -1,15 +1,15 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags: ["v*"]
 
 jobs:
-  check:
-    name: Lint + Typecheck + Test
+  publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -21,14 +21,10 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
+      - run: pnpm build
 
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Test (Tier 1 — no ffmpeg needed)
-        run: pnpm test
+      - run: npm publish --provenance --access public
