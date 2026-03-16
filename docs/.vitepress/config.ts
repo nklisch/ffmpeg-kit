@@ -129,7 +129,8 @@ export default defineConfig({
     },
     footer: {
       message: "Released under the MIT License.",
-      copyright: "Copyright © 2026-present",
+      copyright:
+        'By <a href="https://nathanklisch.dev">Nathan Klisch</a> · Also: <a href="https://skilltap.dev">skilltap</a> · <a href="https://krometrail.dev">Krometrail</a> · <a href="https://godot-theatre.dev">Theatre</a>',
     },
   },
 });
