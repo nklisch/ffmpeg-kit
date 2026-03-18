@@ -211,8 +211,8 @@ export type {
 export type { BuilderDeps, FFmpegConfig, FFmpegSDK } from "./types/sdk.ts";
 // ── Runtime values: builder utilities ──
 export { defaultDeps, missingFieldError, wrapTryExecute } from "./util/builder-helpers.ts";
-export type { CacheOptions } from "./util/cache.ts";
-export { Cache } from "./util/cache.ts";
+export type { Cache, CacheOptions } from "./util/cache.ts";
+export { createCache } from "./util/cache.ts";
 export type { Logger, LogLevel } from "./util/logger.ts";
 export { createLogger, noopLogger } from "./util/logger.ts";
 export type { Platform } from "./util/platform.ts";

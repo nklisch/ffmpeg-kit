@@ -5,7 +5,7 @@ import type { ZodSchema } from "zod";
 import { probeResultSchema, rawProbeOutputSchema } from "../schemas/probe.ts";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
 import type { AudioStreamInfo, ProbeResult, VideoStreamInfo } from "../types/probe.ts";
-import { Cache } from "../util/cache.ts";
+import { type Cache, createCache } from "../util/cache.ts";
 
 /** Internal config for the ffprobe binary path */
 export interface ProbeConfig {
@@ -42,11 +42,11 @@ function zodParseOrThrow<T>(
 }
 
 // Module-level singleton cache
-let probeCache = new Cache<string, ProbeResult>({ maxSize: 100, ttlMs: 300_000 });
+let probeCache = createCache<string, ProbeResult>({ maxSize: 100, ttlMs: 300_000 });
 
 /** Clear the probe result cache. Used for testing or manual cache invalidation. */
 export function clearProbeCache(): void {
-  probeCache = new Cache<string, ProbeResult>({ maxSize: 100, ttlMs: 300_000 });
+  probeCache = createCache<string, ProbeResult>({ maxSize: 100, ttlMs: 300_000 });
 }
 
 function spawnFfprobe(inputPath: string, ffprobePath: string): Promise<string> {
@@ -206,7 +206,7 @@ export async function getVideoStream(
 ): Promise<VideoStreamInfo | null> {
   const result = await probe(inputPath, undefined, config);
   for (const stream of result.streams) {
-    if (stream.type === "video") return stream as VideoStreamInfo;
+    if (stream.type === "video") return stream;
   }
   return null;
 }
@@ -220,7 +220,7 @@ export async function getAudioStream(
 ): Promise<AudioStreamInfo | null> {
   const result = await probe(inputPath, undefined, config);
   for (const stream of result.streams) {
-    if (stream.type === "audio") return stream as AudioStreamInfo;
+    if (stream.type === "audio") return stream;
   }
   return null;
 }

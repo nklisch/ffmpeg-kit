@@ -26,10 +26,9 @@ import { dash, hls } from "./operations/streaming.ts";
 import { subtitle } from "./operations/subtitle.ts";
 import { text } from "./operations/text.ts";
 import { transform } from "./operations/transform.ts";
-import type { ProbeResult } from "./types/probe.ts";
-
+import type { AudioStreamInfo, ProbeResult, VideoStreamInfo } from "./types/probe.ts";
 import type { BuilderDeps, FFmpegConfig, FFmpegSDK } from "./types/sdk.ts";
-import { Cache } from "./util/cache.ts";
+import { createCache } from "./util/cache.ts";
 import { parseTimecode } from "./util/timecode.ts";
 
 /**
@@ -47,7 +46,7 @@ export function createFFmpeg(config?: FFmpegConfig): FFmpegSDK {
 
   const probeCacheSize = config?.probeCacheSize ?? 100;
   const probeCacheTtl = config?.probeCacheTtl ?? 300_000;
-  const probeCache = new Cache<string, ProbeResult>({
+  const probeCache = createCache<string, ProbeResult>({
     maxSize: Math.max(probeCacheSize, 1),
     ttlMs: probeCacheSize > 0 ? probeCacheTtl : 0,
   });
@@ -74,15 +73,11 @@ export function createFFmpeg(config?: FFmpegConfig): FFmpegSDK {
     },
     getVideoStream: async (path) => {
       const result = await deps.probe(path);
-      const stream = result.streams.find((s) => s.type === "video");
-      if (!stream || stream.type !== "video") return null;
-      return stream;
+      return result.streams.find((s): s is VideoStreamInfo => s.type === "video") ?? null;
     },
     getAudioStream: async (path) => {
       const result = await deps.probe(path);
-      const stream = result.streams.find((s) => s.type === "audio");
-      if (!stream || stream.type !== "audio") return null;
-      return stream;
+      return result.streams.find((s): s is AudioStreamInfo => s.type === "audio") ?? null;
     },
     validateInstallation: () => validateInstallation({ ffmpegPath, ffprobePath }),
     clearProbeCache: () => {

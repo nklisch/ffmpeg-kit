@@ -69,26 +69,18 @@ function validateConcatState(
 }
 
 function needsFilterComplex(state: ConcatState): boolean {
-  if (
-    state.normalizeWidth !== undefined ||
-    state.normalizeHeight !== undefined ||
-    state.normalizeFpsValue !== undefined ||
-    state.fillSilenceEnabled === true
-  ) {
-    return true;
-  }
-  for (const clip of state.clips) {
-    if (clip.trimStart !== undefined || clip.trimEnd !== undefined || clip.duration !== undefined) {
-      return true;
-    }
-    if (clip.transitionAfter !== undefined) {
-      return true;
-    }
-  }
-  if (state.defaultTransitionConfig !== undefined) {
-    return true;
-  }
-  return false;
+  if (state.normalizeWidth !== undefined) return true;
+  if (state.normalizeHeight !== undefined) return true;
+  if (state.normalizeFpsValue !== undefined) return true;
+  if (state.fillSilenceEnabled === true) return true;
+  if (state.defaultTransitionConfig !== undefined) return true;
+  return state.clips.some(
+    (c) =>
+      c.trimStart !== undefined ||
+      c.trimEnd !== undefined ||
+      c.duration !== undefined ||
+      c.transitionAfter !== undefined,
+  );
 }
 
 function getEffectiveTransition(

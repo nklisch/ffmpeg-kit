@@ -1,5 +1,5 @@
 import { exportVideo } from "../operations/export.ts";
-import type { HwAccelMode, PixelFormat } from "../types/codecs.ts";
+import type { AudioCodec, HwAccelMode, PixelFormat, VideoCodec } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, SmartTranscodeResult, TranscodeAction } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";
@@ -7,11 +7,11 @@ import { probeOutput } from "../util/builder-helpers.ts";
 import { parseBitrate } from "./estimate.ts";
 
 interface SmartTranscodeTarget {
-  videoCodec?: string;
+  videoCodec?: VideoCodec;
   maxWidth?: number;
   maxHeight?: number;
   pixelFormat?: PixelFormat;
-  audioCodec?: string;
+  audioCodec?: AudioCodec;
   audioSampleRate?: number;
   maxBitrate?: string;
 }
@@ -104,7 +104,7 @@ export async function smartTranscode(
     actions.push("copy_all");
   } else if (needsVideoTranscode && !needsAudioTranscode) {
     if (target.videoCodec !== undefined) {
-      builder.videoCodec(target.videoCodec as import("../types/codecs.ts").VideoCodec);
+      builder.videoCodec(target.videoCodec);
     }
     if (target.pixelFormat !== undefined) {
       builder.pixelFormat(target.pixelFormat);
@@ -115,7 +115,7 @@ export async function smartTranscode(
   } else if (!needsVideoTranscode && needsAudioTranscode) {
     builder.videoCodec("copy");
     if (target.audioCodec !== undefined) {
-      builder.audioCodec(target.audioCodec as import("../types/codecs.ts").AudioCodec);
+      builder.audioCodec(target.audioCodec);
     }
     if (target.audioSampleRate !== undefined) {
       builder.audioSampleRate(target.audioSampleRate);
@@ -125,13 +125,13 @@ export async function smartTranscode(
   } else {
     // Both need transcoding
     if (target.videoCodec !== undefined) {
-      builder.videoCodec(target.videoCodec as import("../types/codecs.ts").VideoCodec);
+      builder.videoCodec(target.videoCodec);
     }
     if (target.pixelFormat !== undefined) {
       builder.pixelFormat(target.pixelFormat);
     }
     if (target.audioCodec !== undefined) {
-      builder.audioCodec(target.audioCodec as import("../types/codecs.ts").AudioCodec);
+      builder.audioCodec(target.audioCodec);
     }
     if (target.audioSampleRate !== undefined) {
       builder.audioSampleRate(target.audioSampleRate);

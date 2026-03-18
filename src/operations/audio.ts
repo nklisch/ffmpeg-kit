@@ -276,9 +276,6 @@ function buildAudioFilters(state: AudioState, fadeOutStart?: number): string[] {
 }
 
 function buildVolumeFilter(vol: number | string): string {
-  if (typeof vol === "string") {
-    return `volume=${vol}`;
-  }
   return `volume=${vol}`;
 }
 
@@ -407,7 +404,6 @@ interface SilenceRange {
 
 function parseSilenceRanges(stderr: string): SilenceRange[] {
   const ranges: SilenceRange[] = [];
-  const _starts = new Map<number, number>();
   let currentStart: number | undefined;
 
   for (const line of stderr.split("\n")) {
