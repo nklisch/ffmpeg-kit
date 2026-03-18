@@ -1,4 +1,4 @@
-import { statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { FFmpegError, FFmpegErrorCode } from "../types/errors.ts";
@@ -56,6 +56,15 @@ export interface BaseProbeInfo {
 type ProbeFn = (path: string, opts?: { noCache?: boolean }) => Promise<ProbeResult>;
 
 export async function probeOutput(outputPath: string, probeFn: ProbeFn): Promise<BaseProbeInfo> {
+  if (!existsSync(outputPath)) {
+    throw new FFmpegError({
+      code: FFmpegErrorCode.OUTPUT_ERROR,
+      message: `FFmpeg produced no output file: ${outputPath}`,
+      stderr: "",
+      command: [],
+      exitCode: 0,
+    });
+  }
   const fileStat = statSync(outputPath);
   const probeResult = await probeFn(outputPath, { noCache: true });
   const duration = probeResult.format.duration ?? 0;

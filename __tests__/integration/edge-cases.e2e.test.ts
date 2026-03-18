@@ -50,22 +50,15 @@ describeWithFFmpeg("edge cases", () => {
     expectFileExists(frame);
   });
 
-  // Test 4: Timestamp beyond video duration — ffmpeg typically produces the last frame or a frame near the end
-  it("handles timestamp beyond video duration gracefully", async () => {
+  // Test 4: Timestamp beyond video duration — ffmpeg exits 0 but produces no file
+  it("throws FFmpegError when timestamp is beyond video duration", async () => {
     const output = tmp("edge-beyond.png");
 
-    // FFmpeg with -ss beyond duration + single frame typically either:
-    // - Produces no output (error) or
-    // - Produces the last frame
-    // We just verify it doesn't hang or crash
-    try {
-      await ffmpeg.extract().input(FIXTURES.videoShort).timestamp(999).output(output).execute();
-      // If it succeeds, verify we got a file
-      expectFileExists(output, 1); // might be small
-    } catch (err) {
-      // If it fails, it should be an error of some kind (FFmpegError or ENOENT if no output produced)
-      expect(err).toBeInstanceOf(Error);
-    }
+    await expect(
+      ffmpeg.extract().input(FIXTURES.videoShort).timestamp(999).output(output).execute(),
+    ).rejects.toMatchObject({
+      code: FFmpegErrorCode.OUTPUT_ERROR,
+    });
   });
 
   // Test 5: Empty/zero-byte input file
