@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dash, hls } from "../../src/operations/streaming.ts";
+import { dash, hls } from "../../src/operations/video/streaming.ts";
 
 describe("HlsBuilder", () => {
   it("produces -f hls with default segment duration", () => {

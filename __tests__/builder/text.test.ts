@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { text } from "../../src/operations/text.ts";
+import { text } from "../../src/operations/video/text.ts";
 
 describe("text()", () => {
   // --- Validation ---

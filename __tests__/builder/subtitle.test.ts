@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { subtitle } from "../../src/operations/subtitle.ts";
+import { subtitle } from "../../src/operations/video/subtitle.ts";
 
 describe("SubtitleBuilder", () => {
   // Soft sub

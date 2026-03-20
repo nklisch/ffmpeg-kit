@@ -1,4 +1,4 @@
-import { exportVideo } from "../operations/export.ts";
+import { exportVideo } from "../operations/io/export.ts";
 import type { AudioCodec, HwAccelMode, PixelFormat, VideoCodec } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { OperationResult, SmartTranscodeResult, TranscodeAction } from "../types/results.ts";

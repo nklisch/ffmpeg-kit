@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gif } from "../../src/operations/gif.ts";
+import { gif } from "../../src/operations/image/gif.ts";
 
 describe("GifBuilder", () => {
   // 1-pass (simple)

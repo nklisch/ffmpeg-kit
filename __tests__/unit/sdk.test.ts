@@ -64,7 +64,7 @@ describe("createFFmpeg", () => {
   });
 
   it("builders without SDK throw on execute", async () => {
-    const { extract } = await import("../../src/operations/extract.ts");
+    const { extract } = await import("../../src/operations/image/extract.ts");
     await expect(
       extract().input("/test.mp4").timestamp(5).output("/frame.png").execute(),
     ).rejects.toThrow("requires an SDK instance");

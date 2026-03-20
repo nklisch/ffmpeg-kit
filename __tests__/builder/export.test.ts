@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exportVideo } from "../../src/operations/export.ts";
+import { exportVideo } from "../../src/operations/io/export.ts";
 
 describe("exportVideo()", () => {
   // --- Validation ---

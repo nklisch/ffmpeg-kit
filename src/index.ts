@@ -77,11 +77,9 @@ export type { DetectConfig, HardwareCapabilities } from "./hardware/detect.ts";
 export type { FallbackOptions } from "./hardware/fallback.ts";
 export type { HwSession, SessionConfig } from "./hardware/session.ts";
 // ── Builder interfaces (for typing, not construction) ──
-export type { AudioBuilder } from "./operations/audio.ts";
-export type { ConcatBuilder } from "./operations/concat.ts";
-export type { ExportBuilder } from "./operations/export.ts";
-export type { ExtractBuilder } from "./operations/extract.ts";
-export type { DitherMethod, GifBuilder, PaletteMode } from "./operations/gif.ts";
+export type { AudioBuilder } from "./operations/audio/audio.ts";
+export type { ExtractBuilder } from "./operations/image/extract.ts";
+export type { DitherMethod, GifBuilder, PaletteMode } from "./operations/image/gif.ts";
 export type {
   ImageBuilder,
   ImageOutputFormat,
@@ -90,13 +88,15 @@ export type {
   SolidColorConfig,
   TestPatternConfig,
   ToVideoConfig,
-} from "./operations/image.ts";
+} from "./operations/image/image.ts";
+export type { ConcatBuilder } from "./operations/io/concat.ts";
+export type { ExportBuilder } from "./operations/io/export.ts";
 export type {
   OverlayBuilder,
   OverlayConfig,
   PipConfig,
   WatermarkConfig,
-} from "./operations/overlay.ts";
+} from "./operations/video/overlay.ts";
 export type {
   DashBuilder,
   HlsBuilder,
@@ -105,22 +105,22 @@ export type {
   HlsPlaylistType,
   HlsSegmentType,
   HlsVariantConfig,
-} from "./operations/streaming.ts";
+} from "./operations/video/streaming.ts";
 export type {
   ConvertSubConfig,
   ExtractSubConfig,
   HardBurnConfig,
   SoftSubConfig,
   SubtitleBuilder,
-} from "./operations/subtitle.ts";
+} from "./operations/video/subtitle.ts";
 export type {
   CounterConfig,
   ScrollConfig,
   TextBuilder,
   TextConfig,
   TextStyle,
-} from "./operations/text.ts";
-export type { TransformBuilder } from "./operations/transform.ts";
+} from "./operations/video/text.ts";
+export type { TransformBuilder } from "./operations/video/transform.ts";
 // ── Runtime values: schemas ──
 export {
   audioStreamInfoSchema,

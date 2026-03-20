@@ -1,6 +1,6 @@
 import { copyFileSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
-import { exportVideo } from "../operations/export.ts";
+import { exportVideo } from "../operations/io/export.ts";
 import type { HwAccelMode, PixelFormat } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ProbeResult } from "../types/probe.ts";

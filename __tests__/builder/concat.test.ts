@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { concat } from "../../src/operations/concat.ts";
+import { concat } from "../../src/operations/io/concat.ts";
 
 describe("concat()", () => {
   // --- Validation ---

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { audio } from "../../src/operations/audio.ts";
+import { audio } from "../../src/operations/audio/audio.ts";
 
 describe("audio()", () => {
   // --- Required field validation ---

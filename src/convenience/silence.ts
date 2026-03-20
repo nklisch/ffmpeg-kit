@@ -1,6 +1,6 @@
 import { extname, join } from "node:path";
-import { audio } from "../operations/audio.ts";
-import { transform } from "../operations/transform.ts";
+import { audio } from "../operations/audio/audio.ts";
+import { transform } from "../operations/video/transform.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { SilenceRange, SplitSegment } from "../types/results.ts";
 import type { BuilderDeps } from "../types/sdk.ts";

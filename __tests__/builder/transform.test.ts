@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { transform } from "../../src/operations/transform.ts";
+import { transform } from "../../src/operations/video/transform.ts";
 
 describe("TransformBuilder", () => {
   // Scale

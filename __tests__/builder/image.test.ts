@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { image } from "../../src/operations/image.ts";
+import { image } from "../../src/operations/image/image.ts";
 
 describe("ImageBuilder", () => {
   // Image sequence

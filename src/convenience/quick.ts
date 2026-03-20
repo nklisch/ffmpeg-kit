@@ -1,7 +1,7 @@
-import { audio } from "../operations/audio.ts";
-import { exportVideo } from "../operations/export.ts";
-import { image } from "../operations/image.ts";
-import { transform } from "../operations/transform.ts";
+import { audio } from "../operations/audio/audio.ts";
+import { image } from "../operations/image/image.ts";
+import { exportVideo } from "../operations/io/export.ts";
+import { transform } from "../operations/video/transform.ts";
 import type { AudioCodec, QualityTier } from "../types/codecs.ts";
 import type { ExecuteOptions } from "../types/options.ts";
 import type { ExportResult, TransformResult } from "../types/results.ts";
